@@ -98,6 +98,8 @@ public class MainApp extends Application {
         
         HBox searchBox = new HBox(10, searchField, searchButton);
         searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setVisible(false);
+        searchBox.setManaged(false);
         
         // Navigation Links Section
         HBox navLinks = new HBox(64);
@@ -168,6 +170,8 @@ public class MainApp extends Application {
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(false);
+            searchBox.setManaged(false);
             ProfileView profileView = new ProfileView(() -> showLoginScreen(primaryStage));
             root.setCenter(profileView.getView(user));
         });
@@ -189,6 +193,8 @@ public class MainApp extends Application {
             navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(false);
+            searchBox.setManaged(false);
             updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
             DashboardView dashboardView = new DashboardView();
             root.setCenter(dashboardView.getDashboardView(user, root));
@@ -199,6 +205,8 @@ public class MainApp extends Application {
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(true);
+            searchBox.setManaged(true);
             updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
             EntryListView entryListView = new EntryListView(user);
             root.setCenter(entryListView.getView());
@@ -209,6 +217,8 @@ public class MainApp extends Application {
             navKalendar.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(false);
+            searchBox.setManaged(false);
             updateActionButton.accept("Tambah Target", "img/icons/calendar.png");
             CalendarView calendarView = new CalendarView(user);
             root.setCenter(calendarView.getView());
@@ -220,17 +230,23 @@ public class MainApp extends Application {
                 navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                 navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                 navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                searchBox.setVisible(true);
+                searchBox.setManaged(true);
 
                 EntryFormView entryFormView = new EntryFormView(user, () -> {
                     navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                     navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                     navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                    searchBox.setVisible(true);
+                    searchBox.setManaged(true);
                     EntryListView entryListView = new EntryListView(user);
                     root.setCenter(entryListView.getView());
                 });
                 root.setCenter(entryFormView.getView().getCenter());
             } else {
                 com.juki.view.GoalModal goalModal = new com.juki.view.GoalModal(user, LocalDate.now(), () -> {
+                    searchBox.setVisible(false);
+                    searchBox.setManaged(false);
                     CalendarView calendarView = new CalendarView(user);
                     root.setCenter(calendarView.getView());
                 });
