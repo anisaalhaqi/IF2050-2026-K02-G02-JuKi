@@ -1,9 +1,12 @@
 package com.juki;
 
 import com.juki.controller.RegistrationFormController;
+import com.juki.controller.SearchController;
 import com.juki.db.DatabaseHelper;
+import com.juki.model.JournalEntry;
 import com.juki.model.User;
 import com.juki.view.DashboardView;
+import java.util.List;
 import com.juki.view.CalendarView;
 import com.juki.view.EntryFormView;
 import com.juki.view.EntryListView;
@@ -15,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -51,9 +55,10 @@ public class MainApp extends Application {
 
     private void showMainDashboard(Stage primaryStage, User user) {
         BorderPane root = new BorderPane();
+        SearchController searchController = new SearchController();
         
         // Top Navigation Bar
-        HBox navBar = new HBox();
+        HBox navBar = new HBox(20);
         navBar.setStyle("-fx-background-color: #A114AC; -fx-padding: 42px 100px;");
         navBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -70,6 +75,29 @@ public class MainApp extends Application {
         HBox logoBox = new HBox(32);
         logoBox.setAlignment(Pos.CENTER_LEFT);
         logoBox.getChildren().addAll(logo);
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Cari Jurnal");
+        searchField.setPrefWidth(320);
+        searchField.setStyle("-fx-background-radius: 100px; -fx-background-color: white; -fx-padding: 12px 18px; -fx-font-size: 16px;");
+        Button searchButton = new Button("Cari");
+        searchButton.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 16px; -fx-background-radius: 100px; -fx-padding: 12px 24px; -fx-cursor: hand;");
+
+        Runnable performSearch = () -> {
+            String keyword = searchField.getText() != null ? searchField.getText().trim() : "";
+            if (keyword.isEmpty()) {
+                return;
+            }
+            List<JournalEntry> results = searchController.searchEntries(new com.juki.model.SearchFilter(null, keyword, null), user.getId());
+            EntryListView searchResultView = new EntryListView(user, results);
+            root.setCenter(searchResultView.getView());
+        };
+
+        searchField.setOnAction(e -> performSearch.run());
+        searchButton.setOnAction(e -> performSearch.run());
+        
+        HBox searchBox = new HBox(10, searchField, searchButton);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
         
         // Navigation Links Section
         HBox navLinks = new HBox(64);
@@ -152,7 +180,7 @@ public class MainApp extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        navBar.getChildren().addAll(logoBox, spacer, menuBox);
+        navBar.getChildren().addAll(logoBox, searchBox, spacer, menuBox);
         root.setTop(navBar);
 
         // Event Navigation Routing

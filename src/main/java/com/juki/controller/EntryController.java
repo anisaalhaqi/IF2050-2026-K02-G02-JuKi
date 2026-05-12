@@ -32,6 +32,63 @@ public class EntryController {
         return entries;
     }
 
+    public List<JournalEntry> searchEntries(int userId, String keyword) {
+        List<JournalEntry> entries = new ArrayList<>();
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllEntries(userId);
+        }
+
+        String searchTerm = "%" + keyword.toLowerCase() + "%";
+        String sql = "SELECT j.*, p.filePath FROM JournalEntry j " +
+                     "LEFT JOIN Photo p ON j.photo_id = p.id " +
+                     "WHERE j.user_id = ? AND (" +
+                     "LOWER(j.title) LIKE ? OR LOWER(j.description) LIKE ? OR LOWER(j.category) LIKE ? OR " +
+                     "LOWER(j.trigger) LIKE ? OR LOWER(j.target) LIKE ?) " +
+                     "ORDER BY j.date DESC, j.time DESC";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            for (int i = 2; i <= 6; i++) {
+                pstmt.setString(i, searchTerm);
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    entries.add(mapResultSetToEntry(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error searching entries: " + e.getMessage());
+        }
+        return entries;
+    }
+
+    public List<JournalEntry> getEntriesByDate(int userId, LocalDate date) {
+        if (date == null) {
+            return getAllEntries(userId);
+        }
+
+        List<JournalEntry> entries = new ArrayList<>();
+        String sql = "SELECT j.*, p.filePath FROM JournalEntry j " +
+                     "LEFT JOIN Photo p ON j.photo_id = p.id " +
+                     "WHERE j.user_id = ? AND j.date = ? " +
+                     "ORDER BY j.date DESC, j.time DESC";
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, date.toString());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    entries.add(mapResultSetToEntry(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching entries by date: " + e.getMessage());
+        }
+        return entries;
+    }
+
     public JournalEntry getEntryDetail(int id) {
         String sql = "SELECT j.*, p.filePath FROM JournalEntry j LEFT JOIN Photo p ON j.photo_id = p.id WHERE j.id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
