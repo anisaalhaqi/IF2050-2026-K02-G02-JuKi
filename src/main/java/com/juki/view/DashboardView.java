@@ -2,8 +2,10 @@ package com.juki.view;
 
 import com.juki.controller.EntryController;
 import com.juki.controller.GoalController;
+import com.juki.controller.MoodController;
 import com.juki.model.JournalEntry;
 import com.juki.model.SelfCareGoal;
+import com.juki.model.DailyMood;
 import com.juki.model.User;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,11 +31,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DashboardView {
 
     private User currentUser;
     private BorderPane mainRoot;
+    private MoodController moodController = new MoodController();
 
     public ScrollPane getDashboardView(User user, BorderPane root) {
         this.currentUser = user;
@@ -114,7 +119,7 @@ public class DashboardView {
         HBox streakIcon = new HBox(8); // Agar sejajar ke samping dengan jarak 8px
         streakIcon.setAlignment(Pos.CENTER);
         
-        ImageView fireImage = new ImageView(new Image("file:img/beranda/streak_fire.png"));
+        ImageView fireImage = new ImageView(new Image("file:img/dashboard/streak_fire.png"));
         fireImage.setFitWidth(42.15);
         fireImage.setFitHeight(60.45);
         fireImage.setPreserveRatio(true);
@@ -315,6 +320,10 @@ public class DashboardView {
             LocalDate today = LocalDate.now();
             boolean isCurrentMonth = (today.getYear() == currentMonth[0].getYear() && today.getMonth() == currentMonth[0].getMonth());
 
+            // Load moods for this month
+            List<DailyMood> monthlyMoods = moodController.getMoodsByMonth(currentUser.getId(), currentMonth[0]);
+            Map<LocalDate, String> moodMap = monthlyMoods.stream().collect(Collectors.toMap(DailyMood::getDate, DailyMood::getMoodName));
+
             int day = 1;
             for (int row = 1; row <= 6; row++) {
                 for (int col = 0; col < 7; col++) {
@@ -324,17 +333,33 @@ public class DashboardView {
                         cell.setMinWidth(40);
                         cell.setAlignment(Pos.CENTER);
 
-                        Label d = new Label(String.valueOf(day));
-                        d.setFont(Font.font("Montserrat", FontWeight.NORMAL, 20));
-                        
-                        if (isCurrentMonth && day == today.getDayOfMonth()) {
-                            d.setTextFill(Color.WHITE);
-                            d.setFont(Font.font("Montserrat", FontWeight.BOLD, 20));
-                            Circle bg = new Circle(20, Color.web("#F1B900"));
-                            cell.getChildren().addAll(bg, d);
+                        LocalDate cellDate = currentMonth[0].withDayOfMonth(day);
+                        if (moodMap.containsKey(cellDate)) {
+                            // Show mood icon
+                            String moodName = moodMap.get(cellDate).toLowerCase();
+                            try {
+                                ImageView moodIcon = new ImageView(new Image("file:img/emotions/" + moodName + ".png"));
+                                moodIcon.setFitWidth(30);
+                                moodIcon.setPreserveRatio(true);
+                                cell.getChildren().add(moodIcon);
+                            } catch (Exception e) {
+                                Label d = new Label(String.valueOf(day));
+                                d.setFont(Font.font("Montserrat", FontWeight.NORMAL, 20));
+                                cell.getChildren().add(d);
+                            }
                         } else {
-                            d.setTextFill(Color.web("#434343"));
-                            cell.getChildren().add(d);
+                            Label d = new Label(String.valueOf(day));
+                            d.setFont(Font.font("Montserrat", FontWeight.NORMAL, 20));
+                            
+                            if (isCurrentMonth && day == today.getDayOfMonth()) {
+                                d.setTextFill(Color.WHITE);
+                                d.setFont(Font.font("Montserrat", FontWeight.BOLD, 20));
+                                Circle bg = new Circle(20, Color.web("#F1B900"));
+                                cell.getChildren().addAll(bg, d);
+                            } else {
+                                d.setTextFill(Color.web("#434343"));
+                                cell.getChildren().add(d);
+                            }
                         }
                         
                         grid.add(cell, col, row);
@@ -393,8 +418,20 @@ public class DashboardView {
             "Joyful", "Sensitive", "Stressed", "Tired"
         ));
         
+        // Cek mood hari ini
+        DailyMood todayMood = moodController.getMoodByDate(currentUser.getId(), LocalDate.now());
+        
         // Menggunakan array untuk currentIndex agar nilainya bisa diubah di dalam fungsi click (lambda)
-        int[] currentIndex = {3}; // Kita mulai dari indeks 3 ("excited.png") agar sama dengan UI bawaanmu
+        int[] currentIndex = {3}; // Default: Excited
+        if (todayMood != null) {
+            String existingMood = todayMood.getMoodName();
+            for (int i = 0; i < moodNames.size(); i++) {
+                if (moodNames.get(i).equalsIgnoreCase(existingMood)) {
+                    currentIndex[0] = i;
+                    break;
+                }
+            }
+        }
 
         VBox moodSelection = new VBox(8);
         moodSelection.setAlignment(Pos.CENTER);
@@ -444,35 +481,36 @@ public class DashboardView {
             moodName.setText(moodNames.get(currentIndex[0]));
         });
 
-        Button btnCatat = new Button("Catat");
-        try {
-            ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
-            notesIcon.setFitWidth(32);
-            notesIcon.setFitHeight(32);
-            notesIcon.setPreserveRatio(true);
-            btnCatat.setGraphic(notesIcon);
-            btnCatat.setGraphicTextGap(10);
-        } catch (Exception e) {
-            System.err.println("Could not load notes icon: " + e.getMessage());
+        Button btnAction = new Button(todayMood == null ? "Catat" : "Ubah");
+        if (todayMood == null) {
+            try {
+                ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
+                notesIcon.setFitWidth(32);
+                notesIcon.setFitHeight(32);
+                notesIcon.setPreserveRatio(true);
+                btnAction.setGraphic(notesIcon);
+                btnAction.setGraphicTextGap(10);
+            } catch (Exception e) {}
+            btnAction.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-padding: 16px 64px; -fx-cursor: hand;");
+        } else {
+            btnAction.setStyle("-fx-background-color: transparent; -fx-border-color: black; -fx-border-radius: 10px; -fx-text-fill: black; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-padding: 16px 64px; -fx-cursor: hand;");
         }
-        btnCatat.setMaxWidth(Double.MAX_VALUE);
-        btnCatat.setPrefHeight(52);
-        // HTML: background: #FFE341; padding-left: 64px; padding-right: 64px; ... gap: 10px
-        btnCatat.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-padding: 16px 64px; -fx-cursor: hand;");
+        btnAction.setMaxWidth(Double.MAX_VALUE);
+        btnAction.setPrefHeight(52);
         
-        btnCatat.setOnAction(e -> {
+        btnAction.setOnAction(e -> {
+            String selectedMood = moodNames.get(currentIndex[0]);
+            moodController.saveOrUpdateMood(currentUser.getId(), selectedMood, LocalDate.now());
+            // Refresh Dashboard to update UI
             if (mainRoot != null) {
-                EntryFormView entryFormView = new EntryFormView(currentUser, () -> {
-                    mainRoot.setCenter(getDashboardView(currentUser, mainRoot));
-                });
-                mainRoot.setCenter(entryFormView.getView().getCenter());
+                mainRoot.setCenter(getDashboardView(currentUser, mainRoot));
             }
         });
         
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS); // Mendorong tombol catat ke dasar kotak
         
-        container.getChildren().addAll(titleArea, moodSelection, spacer, btnCatat);
+        container.getChildren().addAll(titleArea, moodSelection, spacer, btnAction);
         return container;
     }
 

@@ -56,6 +56,14 @@ public class DatabaseHelper {
                 "FOREIGN KEY (user_id) REFERENCES User(id)" +
                 ");";
 
+        String sqlMoodTable = "CREATE TABLE IF NOT EXISTS DailyMood (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "mood_name TEXT NOT NULL," +
+                "date TEXT NOT NULL," +
+                "user_id INTEGER NOT NULL," +
+                "FOREIGN KEY (user_id) REFERENCES User(id)" +
+                ");";
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sqlUserTable);
@@ -75,6 +83,7 @@ public class DatabaseHelper {
             }
             stmt.execute(sqlJournalTable);
             stmt.execute(sqlSelfCareTable);
+            stmt.execute(sqlMoodTable);
             
             // Check if user_id column exists in SelfCareGoal, if not, add it
             try {
@@ -101,6 +110,7 @@ public class DatabaseHelper {
             stmt.execute("DELETE FROM JournalEntry;");
             stmt.execute("DELETE FROM Photo;");
             stmt.execute("DELETE FROM SelfCareGoal;");
+            stmt.execute("DELETE FROM DailyMood;");
             stmt.execute("DELETE FROM User;");
             System.out.println("Semua data dalam tabel berhasil dikosongkan (Tabel tetap utuh).");
         } catch (SQLException e) {
@@ -114,6 +124,7 @@ public class DatabaseHelper {
             stmt.execute("DROP TABLE IF EXISTS JournalEntry;");
             stmt.execute("DROP TABLE IF EXISTS Photo;");
             stmt.execute("DROP TABLE IF EXISTS SelfCareGoal;");
+            stmt.execute("DROP TABLE IF EXISTS DailyMood;");
             stmt.execute("DROP TABLE IF EXISTS User;");
             System.out.println("Semua tabel berhasil dihapus dari database.");
         } catch (SQLException e) {
