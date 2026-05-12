@@ -32,7 +32,7 @@ public class GoalModal {
         this.selectedDate = date;
         this.onSave = onSave;
         this.goalController = new GoalController();
-        this.currentGoals = new ArrayList<>(goalController.getGoalsByDate(date));
+        this.currentGoals = new ArrayList<>(goalController.getGoalsByDate(date, user.getId()));
         
         initialize();
     }
@@ -79,7 +79,7 @@ public class GoalModal {
         Button btnAdd = new Button("+");
         btnAdd.setOnAction(e -> {
             if (!targetInput.getText().isEmpty()) {
-                SelfCareGoal newGoal = new SelfCareGoal(null, targetInput.getText(), false, selectedDate);
+                SelfCareGoal newGoal = new SelfCareGoal(null, targetInput.getText(), false, selectedDate, user.getId());
                 currentGoals.add(newGoal);
                 targetInput.clear();
                 renderGoalList();
@@ -99,7 +99,7 @@ public class GoalModal {
         Button btnSave = new Button("Simpan");
         btnSave.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 10; -fx-padding: 10 30; -fx-font-weight: bold;");
         btnSave.setOnAction(e -> {
-            goalController.saveGoalsForDate(selectedDate, currentGoals);
+            goalController.saveGoalsForDate(selectedDate, currentGoals, user.getId());
             if (onSave != null) onSave.run();
             stage.close();
         });
@@ -114,7 +114,7 @@ public class GoalModal {
     }
 
     private void refreshGoals() {
-        currentGoals = new ArrayList<>(goalController.getGoalsByDate(selectedDate));
+        currentGoals = new ArrayList<>(goalController.getGoalsByDate(selectedDate, user.getId()));
         renderGoalList();
     }
 

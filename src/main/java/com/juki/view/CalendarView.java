@@ -123,7 +123,7 @@ public class CalendarView {
         Label targetTitle = new Label("Target Self-care");
         targetTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
         targetBox.getChildren().add(targetTitle);
-        List<SelfCareGoal> goals = goalController.getGoalsByDate(selectedDate);
+        List<SelfCareGoal> goals = goalController.getGoalsByDate(selectedDate, currentUser.getId());
         if (goals.isEmpty()) {
             targetBox.getChildren().add(new Label("Belum ada target."));
         } else {
@@ -173,7 +173,7 @@ public class CalendarView {
                 }
                 cell.getChildren().add(datePane);
 
-                List<SelfCareGoal> dayGoals = goalController.getGoalsByDate(cellDate);
+                List<SelfCareGoal> dayGoals = goalController.getGoalsByDate(cellDate, currentUser.getId());
                 if (!dayGoals.isEmpty()) {
                     VBox targetList = new VBox(2);
                     for (int i = 0; i < Math.min(dayGoals.size(), 3); i++) {
@@ -224,14 +224,14 @@ public class CalendarView {
         MenuItem edit = new MenuItem("Edit Self-Care");
         edit.setOnAction(e -> { modal.close(); new GoalModal(currentUser, date, this::renderCalendar).show(); });
         MenuItem delete = new MenuItem("Hapus Self-Care");
-        delete.setOnAction(e -> { goalController.deleteAllGoalsForDate(date); renderCalendar(); updateSidebarTargets(); modal.close(); });
+        delete.setOnAction(e -> { goalController.deleteAllGoalsForDate(date, currentUser.getId()); renderCalendar(); updateSidebarTargets(); modal.close(); });
         menu.getItems().addAll(edit, delete);
         btnMore.setOnAction(e -> menu.show(btnMore, javafx.geometry.Side.BOTTOM, 0, 0));
 
         header.getChildren().addAll(title, s, dateStr, btnMore);
         
         VBox list = new VBox(10);
-        List<SelfCareGoal> goals = goalController.getGoalsByDate(date);
+        List<SelfCareGoal> goals = goalController.getGoalsByDate(date, currentUser.getId());
         for (SelfCareGoal g : goals) {
             HBox item = new HBox(10);
             item.setAlignment(Pos.CENTER_LEFT);
@@ -243,7 +243,7 @@ public class CalendarView {
             toggle.setStroke(Color.web("#82DD55"));
             toggle.setStyle("-fx-cursor: hand;");
             toggle.setOnMouseClicked(e -> {
-                goalController.updateGoalStatus(g.getId(), !g.isCompleted());
+                goalController.updateGoalStatus(g.getId(), !g.isCompleted(), currentUser.getId());
                 modal.close();
                 showDetailModal(date);
                 renderCalendar();
