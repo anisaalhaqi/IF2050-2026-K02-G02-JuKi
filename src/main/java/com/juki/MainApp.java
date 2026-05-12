@@ -41,7 +41,7 @@ public class MainApp extends Application {
             showMainDashboard(primaryStage, user);
         });
 
-        Scene scene = new Scene(loginView.getView(), 1600, 900);
+        Scene scene = new Scene(loginView.getView(), 1920, 1080);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
