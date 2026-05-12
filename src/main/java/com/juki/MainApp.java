@@ -109,17 +109,21 @@ public class MainApp extends Application {
         Circle profileCircle = new Circle(32, 32, 32);
         profileCircle.setStroke(Color.TRANSPARENT);
         profileCircle.setStyle("-fx-cursor: hand;");
-        try {
-            String photoPath = user.getProfilePhotoPath();
-            if (photoPath == null || photoPath.isEmpty()) {
-                photoPath = "img/dashboard/default_profile_photo.jpg";
+        
+        Runnable updateNavbarProfile = () -> {
+            try {
+                String photoPath = user.getProfilePhotoPath();
+                if (photoPath == null || photoPath.isEmpty()) {
+                    photoPath = "img/dashboard/default_profile_photo.jpg";
+                }
+                Image profileImg = new Image("file:" + photoPath);
+                profileCircle.setFill(new ImagePattern(profileImg));
+            } catch (Exception e) {
+                profileCircle.setFill(Color.web("#D9D9D9"));
+                System.err.println("Could not load profile photo: " + e.getMessage());
             }
-            Image profileImg = new Image("file:" + photoPath);
-            profileCircle.setFill(new ImagePattern(profileImg));
-        } catch (Exception e) {
-            profileCircle.setFill(Color.web("#D9D9D9"));
-            System.err.println("Could not load profile photo: " + e.getMessage());
-        }
+        };
+        updateNavbarProfile.run(); // Call initially
 
         profileCircle.setOnMouseClicked(e -> {
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
@@ -142,6 +146,7 @@ public class MainApp extends Application {
 
         // Event Navigation Routing
         navBeranda.setOnMouseClicked(e -> {
+            updateNavbarProfile.run();
             navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
@@ -150,6 +155,7 @@ public class MainApp extends Application {
         });
 
         navJurnal.setOnMouseClicked(e -> {
+            updateNavbarProfile.run();
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
@@ -158,6 +164,7 @@ public class MainApp extends Application {
         });
         
         navKalendar.setOnMouseClicked(e -> {
+            updateNavbarProfile.run();
             navKalendar.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
@@ -166,6 +173,7 @@ public class MainApp extends Application {
         });
 
         btnTulis.setOnAction(e -> {
+            updateNavbarProfile.run();
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25)); // Set aktif di Jurnal
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
