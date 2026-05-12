@@ -23,7 +23,8 @@ public class DatabaseHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "full_name TEXT NOT NULL," +
                 "username TEXT UNIQUE NOT NULL," +
-                "password TEXT NOT NULL" +
+                "password TEXT NOT NULL," +
+                "profile_photo_path TEXT" +
                 ");";
 
         String sqlPhotoTable = "CREATE TABLE IF NOT EXISTS Photo (" +
@@ -56,6 +57,14 @@ public class DatabaseHelper {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sqlUserTable);
+            
+            // Check if profile_photo_path column exists, if not, add it
+            try {
+                stmt.execute("ALTER TABLE User ADD COLUMN profile_photo_path TEXT;");
+            } catch (SQLException e) {
+                // Column likely already exists, ignore
+            }
+
             stmt.execute(sqlPhotoTable);
             stmt.execute(sqlJournalTable);
             stmt.execute(sqlSelfCareTable);

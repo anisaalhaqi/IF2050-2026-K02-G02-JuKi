@@ -8,7 +8,9 @@ import com.juki.view.CalendarView;
 import com.juki.view.EntryFormView;
 import com.juki.view.EntryListView;
 import com.juki.view.RegistrationFormView;
+import com.juki.view.ProfileView;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -17,6 +19,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -49,12 +53,13 @@ public class MainApp extends Application {
         
         // Top Navigation Bar
         HBox navBar = new HBox();
-        navBar.setStyle("-fx-background-color: #8D1395; -fx-padding: 20px 100px;");
+        navBar.setStyle("-fx-background-color: #A114AC; -fx-padding: 42px 100px;");
         navBar.setAlignment(Pos.CENTER_LEFT);
 
+        // Logo Section: [Image]
         ImageView logo = new ImageView();
         try {
-            logo.setImage(new javafx.scene.image.Image("file:img/beranda/logo (3).png"));
+            logo.setImage(new Image("file:img/dashboard/logo (3).png"));
             logo.setFitHeight(50);
             logo.setPreserveRatio(true);
         } catch (Exception e) {
@@ -65,12 +70,13 @@ public class MainApp extends Application {
         logoBox.setAlignment(Pos.CENTER_LEFT);
         logoBox.getChildren().addAll(logo);
         
-        HBox menuBox = new HBox(64);
-        menuBox.setAlignment(Pos.CENTER);
+        // Navigation Links Section
+        HBox navLinks = new HBox(64);
+        navLinks.setAlignment(Pos.CENTER_LEFT);
         
         Label navBeranda = new Label("Beranda");
-        navBeranda.setTextFill(Color.web("#FDF3FF"));
-        navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
+        navBeranda.setTextFill(Color.web("#F2F6FC"));
+        navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
         navBeranda.setStyle("-fx-cursor: hand;");
 
         Label navJurnal = new Label("Jurnal");
@@ -83,7 +89,8 @@ public class MainApp extends Application {
         navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
         navKalendar.setStyle("-fx-cursor: hand;");
         
-        Button btnTulis = new Button("Tulis Jurnal");
+        // Tambah Self-Care Button
+        Button btnTulis = new Button("Tambah Self-Care");
         try {
             ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
             notesIcon.setFitWidth(32);
@@ -96,7 +103,36 @@ public class MainApp extends Application {
         }
         btnTulis.setStyle("-fx-background-color: white; -fx-text-fill: #A114AC; -fx-font-family: 'Outfit'; -fx-font-size: 25px; -fx-background-radius: 10px; -fx-padding: 16px 32px; -fx-cursor: hand;");
         
-        menuBox.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnTulis);
+        navLinks.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnTulis);
+
+        // Profile Photo using Circle + ImagePattern (More robust than clipping)
+        Circle profileCircle = new Circle(32, 32, 32);
+        profileCircle.setStroke(Color.TRANSPARENT);
+        profileCircle.setStyle("-fx-cursor: hand;");
+        try {
+            String photoPath = user.getProfilePhotoPath();
+            if (photoPath == null || photoPath.isEmpty()) {
+                photoPath = "img/dashboard/default_profile_photo.jpg";
+            }
+            Image profileImg = new Image("file:" + photoPath);
+            profileCircle.setFill(new ImagePattern(profileImg));
+        } catch (Exception e) {
+            profileCircle.setFill(Color.web("#D9D9D9"));
+            System.err.println("Could not load profile photo: " + e.getMessage());
+        }
+
+        profileCircle.setOnMouseClicked(e -> {
+            navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            ProfileView profileView = new ProfileView(() -> showLoginScreen(primaryStage));
+            root.setCenter(profileView.getView(user));
+        });
+
+        // Right Menu Box (Nav Links + Profile Photo)
+        HBox menuBox = new HBox(64);
+        menuBox.setAlignment(Pos.CENTER_RIGHT);
+        menuBox.getChildren().addAll(navLinks, profileCircle);
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -146,6 +182,7 @@ public class MainApp extends Application {
         });
 
         // Panggil View Beranda (Dashboard)
+        navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25)); // Set aktif di Beranda
         DashboardView dashboardView = new DashboardView();
         root.setCenter(dashboardView.getDashboardView(user, root));
 
