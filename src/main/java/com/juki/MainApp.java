@@ -44,7 +44,8 @@ public class MainApp extends Application {
         Scene scene = new Scene(loginView.getView(), 1920, 1080);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        primaryStage.setResizable(false);
+        primaryStage.centerOnScreen();
         primaryStage.show();
     }
 
@@ -194,11 +195,13 @@ public class MainApp extends Application {
         DashboardView dashboardView = new DashboardView();
         root.setCenter(dashboardView.getDashboardView(user, root));
 
-        Scene scene = new Scene(root, 1600, 900);
+        Scene scene = new Scene(root, 1920, 1080);
         scene.getStylesheets().add("data:text/css,.chart-series-area-fill { -fx-fill: rgba(255, 105, 180, 0.4); } .chart-series-area-line { -fx-stroke: #FF69B4; -fx-stroke-width: 3px; }");
         primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        primaryStage.centerOnScreen();
+        primaryStage.setMinWidth(1080);
+        primaryStage.setMinHeight(720);
         primaryStage.show();
     }
 
