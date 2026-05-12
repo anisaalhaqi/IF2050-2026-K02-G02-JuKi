@@ -16,14 +16,16 @@ public class EntryController {
 
     public List<JournalEntry> getAllEntries(int userId) {
         List<JournalEntry> entries = new ArrayList<>();
-        String sql = "SELECT j.*, p.filePath FROM JournalEntry j LEFT JOIN Photo p ON j.photo_id = p.id WHERE j.user_id = ? ORDER BY j.date DESC, j.time DESC";
+        String sql = "SELECT * FROM JournalEntry WHERE user_id = ? ORDER BY date DESC, time DESC";
         
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    entries.add(mapResultSetToEntry(rs));
+                    JournalEntry entry = mapResultSetToEntry(rs);
+                    entry.setPhotos(loadPhotosFromIds(rs.getString("photo_id")));
+                    entries.add(entry);
                 }
             }
         } catch (SQLException e) {
@@ -33,13 +35,16 @@ public class EntryController {
     }
 
     public JournalEntry getEntryDetail(int id) {
-        String sql = "SELECT j.*, p.filePath FROM JournalEntry j LEFT JOIN Photo p ON j.photo_id = p.id WHERE j.id = ?";
+        String sql = "SELECT * FROM JournalEntry WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToEntry(rs);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    JournalEntry entry = mapResultSetToEntry(rs);
+                    entry.setPhotos(loadPhotosFromIds(rs.getString("photo_id")));
+                    return entry;
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error fetching entry detail: " + e.getMessage());
@@ -63,24 +68,33 @@ public class EntryController {
         return true;
     }
 
-    public void addEntry(JournalEntry entry) {
+    public void saveJournal(JournalEntry entry) {
         String insertPhotoSql = "INSERT INTO Photo(filePath) VALUES(?)";
         String insertJournalSql = "INSERT INTO JournalEntry(category, title, description, trigger, target, date, time, photo_id, user_id) VALUES(?,?,?,?,?,?,?,?,?)";
-        
+
         try (Connection conn = DatabaseHelper.getConnection()) {
             conn.setAutoCommit(false);
-            Integer photoId = null;
-            
-            if (entry.getPhoto() != null && entry.getPhoto().getFilePath() != null) {
+            List<Integer> photoIds = new ArrayList<>();
+
+            if (entry.getPhotos() != null && !entry.getPhotos().isEmpty()) {
                 try (PreparedStatement pstmtPhoto = conn.prepareStatement(insertPhotoSql, Statement.RETURN_GENERATED_KEYS)) {
-                    pstmtPhoto.setString(1, entry.getPhoto().getFilePath());
-                    pstmtPhoto.executeUpdate();
-                    ResultSet rsPhoto = pstmtPhoto.getGeneratedKeys();
-                    if (rsPhoto.next()) {
-                        photoId = rsPhoto.getInt(1);
+                    for (Photo photo : entry.getPhotos()) {
+                        if (photo != null && photo.getFilePath() != null) {
+                            pstmtPhoto.setString(1, photo.getFilePath());
+                            pstmtPhoto.executeUpdate();
+                            try (ResultSet rs = pstmtPhoto.getGeneratedKeys()) {
+                                if (rs.next()) {
+                                    int photoId = rs.getInt(1);
+                                    photoIds.add(photoId);
+                                    photo.setId(photoId); // Set ID ke objek Photo
+                                }
+                            }
+                        }
                     }
                 }
             }
+
+            String photoIdsStr = photoIds.isEmpty() ? null : photoIds.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("");
 
             try (PreparedStatement pstmtJournal = conn.prepareStatement(insertJournalSql)) {
                 pstmtJournal.setString(1, entry.getCategory());
@@ -90,26 +104,47 @@ public class EntryController {
                 pstmtJournal.setString(5, entry.getTarget());
                 pstmtJournal.setString(6, entry.getDate() != null ? entry.getDate().toString() : null);
                 pstmtJournal.setString(7, entry.getTime() != null ? entry.getTime().toString() : null);
-                if (photoId != null) {
-                    pstmtJournal.setInt(8, photoId);
-                } else {
-                    pstmtJournal.setNull(8, Types.INTEGER);
-                }
-                    pstmtJournal.setInt(9, entry.getUserId());
+                pstmtJournal.setString(8, photoIdsStr);
+                pstmtJournal.setInt(9, entry.getUserId());
                 pstmtJournal.executeUpdate();
             }
+
             conn.commit();
         } catch (SQLException e) {
-            System.err.println("Error adding entry: " + e.getMessage());
+            System.err.println("Error saving journal: " + e.getMessage());
         }
     }
 
     public void deleteEntry(int id) {
+        String selectPhotoIdsSql = "SELECT photo_id FROM JournalEntry WHERE id = ?";
+        String deletePhotosSql = "DELETE FROM Photo WHERE id IN (%s)";
         String deleteJournalSql = "DELETE FROM JournalEntry WHERE id = ?";
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(deleteJournalSql)) {
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            conn.setAutoCommit(false);
+            String photoIdsStr = null;
+            try (PreparedStatement pstmtSelect = conn.prepareStatement(selectPhotoIdsSql)) {
+                pstmtSelect.setInt(1, id);
+                try (ResultSet rs = pstmtSelect.executeQuery()) {
+                    if (rs.next()) {
+                        photoIdsStr = rs.getString("photo_id");
+                    }
+                }
+            }
+            if (photoIdsStr != null && !photoIdsStr.trim().isEmpty()) {
+                String[] ids = photoIdsStr.split(",");
+                String placeholders = String.join(",", java.util.Collections.nCopies(ids.length, "?"));
+                try (PreparedStatement pstmtPhotos = conn.prepareStatement(String.format(deletePhotosSql, placeholders))) {
+                    for (int i = 0; i < ids.length; i++) {
+                        pstmtPhotos.setInt(i + 1, Integer.parseInt(ids[i].trim()));
+                    }
+                    pstmtPhotos.executeUpdate();
+                }
+            }
+            try (PreparedStatement pstmtJournal = conn.prepareStatement(deleteJournalSql)) {
+                pstmtJournal.setInt(1, id);
+                pstmtJournal.executeUpdate();
+            }
+            conn.commit();
         } catch (SQLException e) {
             System.err.println("Error deleting entry: " + e.getMessage());
         }
@@ -153,11 +188,34 @@ public class EntryController {
         String timeStr = rs.getString("time");
         if (timeStr != null) entry.setTime(LocalTime.parse(timeStr));
         
-        int photoId = rs.getInt("photo_id");
-        if (!rs.wasNull()) {
-            Photo p = new Photo(photoId, rs.getString("filePath"));
-            entry.setPhoto(p);
-        }
+        entry.setPhotos(new ArrayList<>()); // will be loaded separately
         return entry;
+    }
+
+    private List<Photo> loadPhotosFromIds(String photoIdsStr) {
+        List<Photo> photos = new ArrayList<>();
+        if (photoIdsStr == null || photoIdsStr.trim().isEmpty()) {
+            return photos;
+        }
+        String[] ids = photoIdsStr.split(",");
+        if (ids.length == 0) {
+            return photos;
+        }
+        String placeholders = String.join(",", java.util.Collections.nCopies(ids.length, "?"));
+        String sql = "SELECT id, filePath FROM Photo WHERE id IN (" + placeholders + ")";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (int i = 0; i < ids.length; i++) {
+                pstmt.setInt(i + 1, Integer.parseInt(ids[i].trim()));
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    photos.add(new Photo(rs.getInt("id"), rs.getString("filePath")));
+                }
+            }
+        } catch (SQLException | NumberFormatException e) {
+            System.err.println("Error loading photos from IDs: " + e.getMessage());
+        }
+        return photos;
     }
 }
