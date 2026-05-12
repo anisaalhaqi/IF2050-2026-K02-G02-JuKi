@@ -36,18 +36,25 @@ public class EntryController {
 
     public JournalEntry getEntryDetail(int id) {
         String sql = "SELECT * FROM JournalEntry WHERE id = ?";
+        System.out.println("[EntryController] getEntryDetail called for ID: " + id);
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     JournalEntry entry = mapResultSetToEntry(rs);
-                    entry.setPhotos(loadPhotosFromIds(rs.getString("photo_id")));
+                    String photoId = rs.getString("photo_id");
+                    System.out.println("[EntryController] Retrieved entry. photo_id column: " + photoId);
+                    entry.setPhotos(loadPhotosFromIds(photoId));
+                    System.out.println("[EntryController] Entry has " + entry.getPhotos().size() + " photos");
                     return entry;
+                } else {
+                    System.out.println("[EntryController] No entry found for ID: " + id);
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching entry detail: " + e.getMessage());
+            System.err.println("[EntryController] Error fetching entry detail: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -194,10 +201,13 @@ public class EntryController {
 
     private List<Photo> loadPhotosFromIds(String photoIdsStr) {
         List<Photo> photos = new ArrayList<>();
+        System.out.println("[EntryController] loadPhotosFromIds called with: " + photoIdsStr);
         if (photoIdsStr == null || photoIdsStr.trim().isEmpty()) {
+            System.out.println("[EntryController] photoIdsStr is null or empty");
             return photos;
         }
         String[] ids = photoIdsStr.split(",");
+        System.out.println("[EntryController] Found " + ids.length + " photo IDs");
         if (ids.length == 0) {
             return photos;
         }
@@ -206,16 +216,23 @@ public class EntryController {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < ids.length; i++) {
-                pstmt.setInt(i + 1, Integer.parseInt(ids[i].trim()));
+                int photoId = Integer.parseInt(ids[i].trim());
+                pstmt.setInt(i + 1, photoId);
+                System.out.println("[EntryController] Query param " + (i + 1) + ": " + photoId);
             }
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    photos.add(new Photo(rs.getInt("id"), rs.getString("filePath")));
+                    int photoId = rs.getInt("id");
+                    String filePath = rs.getString("filePath");
+                    System.out.println("[EntryController] Loaded photo ID=" + photoId + ", path=" + filePath);
+                    photos.add(new Photo(photoId, filePath));
                 }
             }
         } catch (SQLException | NumberFormatException e) {
-            System.err.println("Error loading photos from IDs: " + e.getMessage());
+            System.err.println("[EntryController] Error loading photos from IDs: " + e.getMessage());
+            e.printStackTrace();
         }
+        System.out.println("[EntryController] Total photos loaded: " + photos.size());
         return photos;
     }
 }

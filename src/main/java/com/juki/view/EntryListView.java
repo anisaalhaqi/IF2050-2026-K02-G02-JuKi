@@ -12,16 +12,23 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class EntryListView {
     protected EntryController controller;
     private VBox view;
     private VBox listContainer;
     private User user;
+    private Consumer<Integer> onEntrySelected;
 
     public EntryListView(User user) {
+        this(user, id -> {});
+    }
+
+    public EntryListView(User user, Consumer<Integer> onEntrySelected) {
         controller = new EntryController();
         this.user = user;
+        this.onEntrySelected = onEntrySelected;
         view = new VBox(30);
         view.setPadding(new Insets(50, 100, 50, 100));
         
@@ -82,6 +89,10 @@ public class EntryListView {
     }
 
     public void selectEntry(Integer id) {
-        System.out.println("Membuka detail jurnal dengan ID: " + id);
+        if (onEntrySelected != null) {
+            onEntrySelected.accept(id);
+        } else {
+            System.out.println("Membuka detail jurnal dengan ID: " + id);
+        }
     }
 }

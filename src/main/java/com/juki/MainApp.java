@@ -2,9 +2,12 @@ package com.juki;
 
 import com.juki.controller.RegistrationFormController;
 import com.juki.db.DatabaseHelper;
+import com.juki.controller.EntryController;
+import com.juki.model.JournalEntry;
 import com.juki.model.User;
 import com.juki.view.DashboardView;
 import com.juki.view.CalendarView;
+import com.juki.view.EntryDetailView;
 import com.juki.view.EntryFormView;
 import com.juki.view.EntryListView;
 import com.juki.view.RegistrationFormView;
@@ -160,8 +163,7 @@ public class MainApp extends Application {
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-            EntryListView entryListView = new EntryListView(user);
-            root.setCenter(entryListView.getView());
+            showEntryList(root, user);
         });
         
         navKalendar.setOnMouseClicked(e -> {
@@ -184,8 +186,7 @@ public class MainApp extends Application {
                 navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                 navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                 navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-                EntryListView entryListView = new EntryListView(user);
-                root.setCenter(entryListView.getView());
+                showEntryList(root, user);
             });
             root.setCenter(entryFormView.getView().getCenter()); // Mengambil kontennya saja tanpa duplikasi navbar
         });
@@ -203,6 +204,22 @@ public class MainApp extends Application {
         primaryStage.centerOnScreen();
         primaryStage.setResizable(false);
         primaryStage.show();
+    }
+
+    private void showEntryList(BorderPane root, User user) {
+        EntryListView entryListView = new EntryListView(user, id -> showEntryDetail(root, user, id));
+        root.setCenter(entryListView.getView());
+    }
+
+    private void showEntryDetail(BorderPane root, User user, int entryId) {
+        EntryController entryController = new EntryController();
+        JournalEntry entry = entryController.getEntryDetail(entryId);
+        if (entry == null) {
+            System.err.println("Jurnal tidak ditemukan: " + entryId);
+            return;
+        }
+        EntryDetailView detailView = new EntryDetailView();
+        root.setCenter(detailView.getView(entry, user.getFullName(), () -> showEntryList(root, user)));
     }
 
     public static void main(String[] args) {
