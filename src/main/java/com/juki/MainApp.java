@@ -192,7 +192,7 @@ public class MainApp extends Application {
                 navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                 navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                 navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-                
+
                 EntryFormView entryFormView = new EntryFormView(user, () -> {
                     navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                     navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
