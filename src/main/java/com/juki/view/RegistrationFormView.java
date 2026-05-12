@@ -8,16 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -139,10 +132,24 @@ public class RegistrationFormView {
         VBox passwordBox = createFieldGroup("Password", "Masukkan password", true);
         suPasswordField = (TextField) passwordBox.getUserData();
 
+        Label passwordErrorLabel = new Label("Password minimal 8 karakter, serta mengandung huruf dan angka");
+        passwordErrorLabel.setFont(Font.font("Outfit", 15));
+        passwordErrorLabel.setTextFill(Color.web("#DC2626"));
+        passwordErrorLabel.setWrapText(true);
+        passwordErrorLabel.setPrefWidth(480);
+        passwordErrorLabel.setVisible(false);
+        passwordErrorLabel.setManaged(false);
+
         VBox confirmBox = createFieldGroup("Konfirmasi Password", "Ulangi password", true);
         suConfirmPasswordField = (TextField) confirmBox.getUserData();
 
-        fieldsBox.getChildren().addAll(fullNameBox, usernameBox, passwordBox, confirmBox);
+        Label confirmErrorLabel = new Label("Password tidak cocok!");
+        confirmErrorLabel.setFont(Font.font("Outfit", 15));
+        confirmErrorLabel.setTextFill(Color.web("#DC2626"));
+        confirmErrorLabel.setVisible(false);
+        confirmErrorLabel.setManaged(false);
+
+        fieldsBox.getChildren().addAll(fullNameBox, usernameBox, passwordBox, passwordErrorLabel, confirmBox, confirmErrorLabel);
 
         VBox actionsBox = new VBox(16);
         actionsBox.setPrefWidth(480);
@@ -158,14 +165,32 @@ public class RegistrationFormView {
             String password = suPasswordField.getText();
             String confirmPassword = suConfirmPasswordField.getText();
             
-            if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            passwordErrorLabel.setVisible(false);
+            passwordErrorLabel.setManaged(false);
+            confirmErrorLabel.setVisible(false);
+            confirmErrorLabel.setManaged(false);
+            errorLabel.setText("");
+
+            if (name.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 errorLabel.setText("Semua field wajib diisi!");
                 return;
             }
-            if (!password.equals(confirmPassword)) {
-                errorLabel.setText("Password tidak cocok!");
-                return;
+
+            boolean hasError = false;
+
+            if (!isValidPassword(password)) {
+                passwordErrorLabel.setVisible(true);
+                passwordErrorLabel.setManaged(true);
+                hasError = true;
             }
+
+            if (!password.equals(confirmPassword)) {
+                confirmErrorLabel.setVisible(true);
+                confirmErrorLabel.setManaged(true);
+                hasError = true;
+            }
+
+            if (hasError) return;
             
             User user = controller.signUp(name, username, password);
             if (user != null) {
@@ -184,6 +209,18 @@ public class RegistrationFormView {
         card.getChildren().addAll(title, formContainer);
     }
     
+    private boolean isValidPassword(String password) {
+        if (password.length() < 8) return false;
+        boolean hasLetter = false;
+        boolean hasDigitOrSymbol = false;
+        for (char c : password.toCharArray()) {
+            if (Character.isLetter(c)) hasLetter = true;
+            if (Character.isDigit(c) || !Character.isLetterOrDigit(c)) hasDigitOrSymbol = true;
+            if (hasLetter && hasDigitOrSymbol) return true;
+        }
+        return false;
+    }
+
     private VBox createFieldGroup(String labelText, String prompt, boolean isPassword) {
         VBox group = new VBox(16);
         
