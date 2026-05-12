@@ -90,4 +90,39 @@ public class GoalController {
             System.err.println("Error deleting goals for date: " + e.getMessage());
         }
     }
+
+    public int calculateStreak(int userId) {
+        int streak = 0;
+        LocalDate current = LocalDate.now();
+        
+        List<SelfCareGoal> todayGoals = getGoalsByDate(current);
+        if (!todayGoals.isEmpty()) {
+            boolean todayAllDone = todayGoals.stream().allMatch(SelfCareGoal::isCompleted);
+            if (!todayAllDone) {
+                current = current.minusDays(1);
+            }
+        } else {
+            current = current.minusDays(1);
+        }
+
+        int daysChecked = 0;
+        while (daysChecked < 365) {
+            List<SelfCareGoal> dayGoals = getGoalsByDate(current);
+            if (dayGoals.isEmpty()) {
+                current = current.minusDays(1);
+                daysChecked++;
+                continue; 
+            }
+            
+            boolean allDone = dayGoals.stream().allMatch(SelfCareGoal::isCompleted);
+            if (allDone) {
+                streak++;
+                current = current.minusDays(1);
+            } else {
+                break;
+            }
+            daysChecked++;
+        }
+        return streak;
+    }
 }
