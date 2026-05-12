@@ -12,11 +12,15 @@ public class GoalController {
     
     public List<SelfCareGoal> getGoalsByDate(LocalDate date) {
         List<SelfCareGoal> goals = new ArrayList<>();
-        String sql = "SELECT * FROM SelfCareGoal WHERE date = ?";
+        String sql = (date == null) ? "SELECT * FROM SelfCareGoal" : "SELECT * FROM SelfCareGoal WHERE date = ?";
         
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, date.toString());
+            
+            if (date != null) {
+                pstmt.setString(1, date.toString());
+            }
+            
             ResultSet rs = pstmt.executeQuery();
             
             while (rs.next()) {

@@ -3,6 +3,7 @@ com/juki/controller/EntryController.class
 com/juki/model/Photo.class
 com/juki/model/User.class
 com/juki/model/JournalEntry.class
+com/juki/view/ProfileView.class
 com/juki/controller/RegistrationFormController.class
 com/juki/view/EntryFormView.class
 com/juki/controller/AnalyticsController.class
