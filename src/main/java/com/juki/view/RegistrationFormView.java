@@ -123,40 +123,41 @@ public class RegistrationFormView {
         VBox fieldsBox = new VBox(16);
         fieldsBox.setPrefWidth(480);
 
+        // Name Field & Error
         VBox fullNameBox = createFieldGroup("Nama Lengkap", "Masukkan nama lengkapmu", false);
         suFullNameField = (TextField) fullNameBox.getUserData();
+        Label nameErrorLabel = createFieldErrorLabel("Nama lengkap wajib diisi");
 
+        // Username Field & Error
         VBox usernameBox = createFieldGroup("Username", "Pilih username", false);
         suUsernameField = (TextField) usernameBox.getUserData();
+        Label usernameErrorLabel = createFieldErrorLabel("Username wajib diisi");
 
+        // Password Field & Criteria Error
         VBox passwordBox = createFieldGroup("Password", "Masukkan password", true);
         suPasswordField = (TextField) passwordBox.getUserData();
+        Label passwordEmptyErrorLabel = createFieldErrorLabel("Password wajib diisi");
+        Label passwordCriteriaErrorLabel = createFieldErrorLabel("Password minimal 8 karakter, serta mengandung huruf dan angka");
 
-        Label passwordErrorLabel = new Label("Password minimal 8 karakter, serta mengandung huruf dan angka");
-        passwordErrorLabel.setFont(Font.font("Outfit", 15));
-        passwordErrorLabel.setTextFill(Color.web("#DC2626"));
-        passwordErrorLabel.setWrapText(true);
-        passwordErrorLabel.setPrefWidth(480);
-        passwordErrorLabel.setVisible(false);
-        passwordErrorLabel.setManaged(false);
-
+        // Confirm Password Field & Match Error
         VBox confirmBox = createFieldGroup("Konfirmasi Password", "Ulangi password", true);
         suConfirmPasswordField = (TextField) confirmBox.getUserData();
+        Label confirmEmptyErrorLabel = createFieldErrorLabel("Konfirmasi password wajib diisi");
+        Label confirmMatchErrorLabel = createFieldErrorLabel("Password tidak cocok!");
 
-        Label confirmErrorLabel = new Label("Password tidak cocok!");
-        confirmErrorLabel.setFont(Font.font("Outfit", 15));
-        confirmErrorLabel.setTextFill(Color.web("#DC2626"));
-        confirmErrorLabel.setVisible(false);
-        confirmErrorLabel.setManaged(false);
-
-        fieldsBox.getChildren().addAll(fullNameBox, usernameBox, passwordBox, passwordErrorLabel, confirmBox, confirmErrorLabel);
+        fieldsBox.getChildren().addAll(
+            fullNameBox, nameErrorLabel,
+            usernameBox, usernameErrorLabel,
+            passwordBox, passwordEmptyErrorLabel, passwordCriteriaErrorLabel,
+            confirmBox, confirmEmptyErrorLabel, confirmMatchErrorLabel
+        );
 
         VBox actionsBox = new VBox(16);
         actionsBox.setPrefWidth(480);
 
-        Label errorLabel = new Label();
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setFont(Font.font("Outfit", 12));
+        Label generalErrorLabel = new Label();
+        generalErrorLabel.setTextFill(Color.RED);
+        generalErrorLabel.setFont(Font.font("Outfit", 12));
 
         Button registerButton = createPrimaryButton("Daftar");
         registerButton.setOnAction(e -> {
@@ -165,28 +166,44 @@ public class RegistrationFormView {
             String password = suPasswordField.getText();
             String confirmPassword = suConfirmPasswordField.getText();
             
-            passwordErrorLabel.setVisible(false);
-            passwordErrorLabel.setManaged(false);
-            confirmErrorLabel.setVisible(false);
-            confirmErrorLabel.setManaged(false);
-            errorLabel.setText("");
-
-            if (name.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                errorLabel.setText("Semua field wajib diisi!");
-                return;
-            }
+            // Reset all error visibilities
+            nameErrorLabel.setVisible(false); nameErrorLabel.setManaged(false);
+            usernameErrorLabel.setVisible(false); usernameErrorLabel.setManaged(false);
+            passwordEmptyErrorLabel.setVisible(false); passwordEmptyErrorLabel.setManaged(false);
+            passwordCriteriaErrorLabel.setVisible(false); passwordCriteriaErrorLabel.setManaged(false);
+            confirmEmptyErrorLabel.setVisible(false); confirmEmptyErrorLabel.setManaged(false);
+            confirmMatchErrorLabel.setVisible(false); confirmMatchErrorLabel.setManaged(false);
+            generalErrorLabel.setText("");
 
             boolean hasError = false;
 
-            if (!isValidPassword(password)) {
-                passwordErrorLabel.setVisible(true);
-                passwordErrorLabel.setManaged(true);
+            if (name.isEmpty()) {
+                nameErrorLabel.setVisible(true);
+                nameErrorLabel.setManaged(true);
                 hasError = true;
             }
-
-            if (!password.equals(confirmPassword)) {
-                confirmErrorLabel.setVisible(true);
-                confirmErrorLabel.setManaged(true);
+            if (username.isEmpty()) {
+                usernameErrorLabel.setVisible(true);
+                usernameErrorLabel.setManaged(true);
+                hasError = true;
+            }
+            if (password.isEmpty()) {
+                passwordEmptyErrorLabel.setVisible(true);
+                passwordEmptyErrorLabel.setManaged(true);
+                hasError = true;
+            } else if (!isValidPassword(password)) {
+                passwordCriteriaErrorLabel.setVisible(true);
+                passwordCriteriaErrorLabel.setManaged(true);
+                hasError = true;
+            }
+            
+            if (confirmPassword.isEmpty()) {
+                confirmEmptyErrorLabel.setVisible(true);
+                confirmEmptyErrorLabel.setManaged(true);
+                hasError = true;
+            } else if (!password.equals(confirmPassword)) {
+                confirmMatchErrorLabel.setVisible(true);
+                confirmMatchErrorLabel.setManaged(true);
                 hasError = true;
             }
 
@@ -196,17 +213,28 @@ public class RegistrationFormView {
             if (user != null) {
                 onSuccess.accept(user);
             } else {
-                errorLabel.setText("Pendaftaran gagal! Username mungkin sudah terpakai.");
+                generalErrorLabel.setText("Pendaftaran gagal! Username mungkin sudah terpakai.");
             }
         });
 
         HBox switchBox = createSwitchBox("Sudah punya akun?", "Masuk");
         switchBox.getChildren().get(1).setOnMouseClicked(e -> showSignInPage());
 
-        actionsBox.getChildren().addAll(registerButton, switchBox, errorLabel);
+        actionsBox.getChildren().addAll(registerButton, switchBox, generalErrorLabel);
 
         formContainer.getChildren().addAll(fieldsBox, actionsBox);
         card.getChildren().addAll(title, formContainer);
+    }
+    
+    private Label createFieldErrorLabel(String text) {
+        Label label = new Label(text);
+        label.setFont(Font.font("Outfit", 15));
+        label.setTextFill(Color.web("#DC2626"));
+        label.setWrapText(true);
+        label.setPrefWidth(480);
+        label.setVisible(false);
+        label.setManaged(false);
+        return label;
     }
     
     private boolean isValidPassword(String password) {
