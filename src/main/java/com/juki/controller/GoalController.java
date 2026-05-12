@@ -5,40 +5,45 @@ import com.juki.model.SelfCareGoal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class GoalController {
 
     public List<SelfCareGoal> getGoalsByDate(LocalDate date, int userId) {
         List<SelfCareGoal> goals = new ArrayList<>();
         String sql = (date == null) ? 
-            "SELECT * FROM SelfCareGoal WHERE user_id = ? ORDER BY id DESC" : 
-            "SELECT * FROM SelfCareGoal WHERE date = ? AND user_id = ? ORDER BY id DESC";
-
+            "SELECT * FROM SelfCareGoal WHERE user_id = ?" : 
+            "SELECT * FROM SelfCareGoal WHERE date = ? AND user_id = ?";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            if (date != null) {
-                pstmt.setString(1, date.toString());
-                pstmt.setInt(2, userId);
-            } else {
-                pstmt.setInt(1, userId);
-            }
+            if (date != null) { pstmt.setString(1, date.toString()); pstmt.setInt(2, userId); }
+            else { pstmt.setInt(1, userId); }
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) { goals.add(mapResultSetToGoal(rs)); }
+        } catch (SQLException e) { System.err.println("Error: " + e.getMessage()); }
+        return goals;
+    }
+
+    /**
+     * AMBIL BANYAK DATA SEKALIGUS (Sangat Cepat)
+     */
+    public Map<LocalDate, List<SelfCareGoal>> getGoalsInRange(LocalDate start, LocalDate end, int userId) {
+        Map<LocalDate, List<SelfCareGoal>> map = new HashMap<>();
+        String sql = "SELECT * FROM SelfCareGoal WHERE user_id = ? AND date BETWEEN ? AND ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, start.toString());
+            pstmt.setString(3, end.toString());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                SelfCareGoal goal = new SelfCareGoal();
-                goal.setId(rs.getInt("id"));
-                goal.setTitle(rs.getString("title"));
-                goal.setCompleted(rs.getInt("is_completed") == 1);
-                goal.setDate(LocalDate.parse(rs.getString("date")));
-                goal.setUserId(rs.getInt("user_id"));
-                goals.add(goal);
+                SelfCareGoal g = mapResultSetToGoal(rs);
+                map.computeIfAbsent(g.getDate(), k -> new ArrayList<>()).add(g);
             }
-        } catch (SQLException e) {
-            System.err.println("Error fetching goals: " + e.getMessage());
-        }
-        return goals;
+        } catch (SQLException e) { System.err.println("Error bulk load: " + e.getMessage()); }
+        return map;
     }
 
     public void updateGoalStatus(int id, boolean isCompleted, int userId) {
@@ -49,31 +54,27 @@ public class GoalController {
             pstmt.setInt(2, id);
             pstmt.setInt(3, userId);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error updating goal status: " + e.getMessage());
-        }
+        } catch (SQLException e) { System.err.println("Error update status: " + e.getMessage()); }
     }
 
     public void saveGoalsForDate(LocalDate date, List<SelfCareGoal> goals, int userId) {      
         deleteAllGoalsForDate(date, userId);
-        for (SelfCareGoal goal : goals) {
-            goal.setUserId(userId);
-            addGoal(goal);
+        for (SelfCareGoal g : goals) {
+            g.setUserId(userId);
+            addGoal(g);
         }
     }
 
-    public void addGoal(SelfCareGoal goal) {
+    private void addGoal(SelfCareGoal g) {
         String sql = "INSERT INTO SelfCareGoal(title, is_completed, date, user_id) VALUES(?, ?, ?, ?)";
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, goal.getTitle());
-            pstmt.setInt(2, goal.isCompleted() ? 1 : 0);
-            pstmt.setString(3, goal.getDate().toString());
-            pstmt.setInt(4, goal.getUserId());
+            pstmt.setString(1, g.getTitle());
+            pstmt.setInt(2, g.isCompleted() ? 1 : 0);
+            pstmt.setString(3, g.getDate().toString());
+            pstmt.setInt(4, g.getUserId());
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error adding goal: " + e.getMessage());
-        }
+        } catch (SQLException e) {}
     }
 
     public void deleteAllGoalsForDate(LocalDate date, int userId) {
@@ -83,43 +84,36 @@ public class GoalController {
             pstmt.setString(1, date.toString());
             pstmt.setInt(2, userId);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error deleting goals for date: " + e.getMessage());
-        }
+        } catch (SQLException e) {}
     }
 
     public int calculateStreak(int userId) {
-        // Query efisien untuk mendapatkan semua tanggal yang 'all-completed'
         String sql = "SELECT date FROM SelfCareGoal WHERE user_id = ? GROUP BY date HAVING MIN(is_completed) = 1";
-        Set<LocalDate> completedDates = new HashSet<>();
+        List<LocalDate> dates = new ArrayList<>();
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                completedDates.add(LocalDate.parse(rs.getString("date")));
-            }
+            while (rs.next()) { dates.add(LocalDate.parse(rs.getString("date"))); }
         } catch (SQLException e) { return 0; }
-
-        if (completedDates.isEmpty()) return 0;
-
-        int streak = 0;
-        LocalDate current = LocalDate.now();
         
-        // Cek apakah hari ini harus dihitung atau skip
-        List<SelfCareGoal> todayGoals = getGoalsByDate(current, userId);
-        if (todayGoals.isEmpty() || completedDates.contains(current)) {
-            // Jika hari ini kosong atau sudah selesai, mulai cek dari hari ini/kemarin
-            if (todayGoals.isEmpty()) current = current.minusDays(1);
-        } else {
-            // Jika hari ini ada target tapi BELUM selesai, streak dihitung dari kemarin
-            current = current.minusDays(1);
-        }
-
-        while (completedDates.contains(current)) {
-            streak++;
-            current = current.minusDays(1);
-        }
+        int streak = 0;
+        LocalDate cur = LocalDate.now();
+        // Skip today if no targets or not done
+        List<SelfCareGoal> today = getGoalsByDate(cur, userId);
+        if (today.isEmpty() || !dates.contains(cur)) cur = cur.minusDays(1);
+        
+        while (dates.contains(cur)) { streak++; cur = cur.minusDays(1); }
         return streak;
+    }
+
+    private SelfCareGoal mapResultSetToGoal(ResultSet rs) throws SQLException {
+        SelfCareGoal g = new SelfCareGoal();
+        g.setId(rs.getInt("id"));
+        g.setTitle(rs.getString("title"));
+        g.setCompleted(rs.getInt("is_completed") == 1);
+        g.setDate(LocalDate.parse(rs.getString("date")));
+        g.setUserId(rs.getInt("user_id"));
+        return g;
     }
 }

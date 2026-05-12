@@ -11,9 +11,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * GoalService optimized for performance and to prevent UI freezes.
- */
 public class GoalService {
     private static GoalService instance;
     private final GoalController goalController;
@@ -21,7 +18,6 @@ public class GoalService {
     
     private final ObservableMap<LocalDate, List<SelfCareGoal>> goalsCache = FXCollections.observableHashMap();
     private final IntegerProperty streakProperty = new SimpleIntegerProperty(0);
-    private boolean isUpdating = false;
 
     private GoalService() {
         this.goalController = new GoalController();
@@ -35,23 +31,8 @@ public class GoalService {
     public void setCurrentUser(User user) {
         if (user != null && user.getId() != currentUserId) {
             this.currentUserId = user.getId();
-            
-            // Bulk loading to prevent multiple listener triggers
-            isUpdating = true;
-            try {
-                goalsCache.clear();
-                // Fetch all goals for the user at once if possible, or at least the relevant range
-                // For now, let's load the last 30 days and the current month
-                LocalDate start = LocalDate.now().minusDays(14);
-                for (int i = 0; i <= 31; i++) {
-                    LocalDate d = start.plusDays(i);
-                    List<SelfCareGoal> goals = goalController.getGoalsByDate(d, currentUserId);
-                    goalsCache.put(d, goals != null ? goals : new ArrayList<>());
-                }
-                updateStreak();
-            } finally {
-                isUpdating = false;
-            }
+            goalsCache.clear();
+            updateStreak();
         }
     }
 
@@ -59,23 +40,10 @@ public class GoalService {
 
     public List<SelfCareGoal> getGoalsForDate(LocalDate date) {
         if (!goalsCache.containsKey(date)) {
-            refreshDate(date);
-        }
-        return goalsCache.getOrDefault(date, new ArrayList<>());
-    }
-
-    public void refreshDate(LocalDate date) {
-        if (currentUserId == -1) return;
-        // Don't trigger if already in a bulk update
-        boolean nested = isUpdating;
-        if (!nested) isUpdating = true;
-        try {
             List<SelfCareGoal> goals = goalController.getGoalsByDate(date, currentUserId);
             goalsCache.put(date, goals != null ? goals : new ArrayList<>());
-            updateStreak();
-        } finally {
-            if (!nested) isUpdating = false;
         }
+        return goalsCache.getOrDefault(date, new ArrayList<>());
     }
 
     public void toggleGoalStatus(SelfCareGoal goal) {
@@ -85,7 +53,6 @@ public class GoalService {
     }
 
     public void toggleAllForDate(LocalDate date) {
-        if (currentUserId == -1) return;
         List<SelfCareGoal> goals = getGoalsForDate(date);
         if (goals.isEmpty()) return;
         boolean anyUnfinished = goals.stream().anyMatch(g -> !g.isCompleted());
@@ -95,14 +62,18 @@ public class GoalService {
         refreshDate(date);
     }
 
+    public void refreshDate(LocalDate date) {
+        List<SelfCareGoal> goals = goalController.getGoalsByDate(date, currentUserId);
+        goalsCache.put(date, goals != null ? goals : new ArrayList<>());
+        updateStreak();
+    }
+
     public void saveGoalsForDate(LocalDate date, List<SelfCareGoal> goals) {
-        if (currentUserId == -1) return;
         goalController.saveGoalsForDate(date, goals, currentUserId);
         refreshDate(date);
     }
 
     public void deleteAllForDate(LocalDate date) {
-        if (currentUserId == -1) return;
         goalController.deleteAllGoalsForDate(date, currentUserId);
         refreshDate(date);
     }
@@ -112,8 +83,7 @@ public class GoalService {
 
     public void updateStreak() {
         if (currentUserId != -1) {
-            int val = goalController.calculateStreak(currentUserId);
-            if (streakProperty.get() != val) streakProperty.set(val);
+            streakProperty.set(goalController.calculateStreak(currentUserId));
         }
     }
 
