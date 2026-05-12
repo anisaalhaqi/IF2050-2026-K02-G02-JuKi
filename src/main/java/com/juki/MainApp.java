@@ -25,6 +25,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import java.time.LocalDate;
 
 public class MainApp extends Application {
 
@@ -41,11 +42,10 @@ public class MainApp extends Application {
             showMainDashboard(primaryStage, user);
         });
 
-        Scene scene = new Scene(loginView.getView(), 1920, 1080);
+        Scene scene = new Scene(loginView.getView(), 1600, 900);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.centerOnScreen();
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
@@ -90,23 +90,33 @@ public class MainApp extends Application {
         navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
         navKalendar.setStyle("-fx-cursor: hand;");
         
-        // Tambah Self-Care Button
-        Button btnTulis = new Button("Tambah Self-Care");
+        // Tambah Self-Care Button (Action Button)
+        Button btnAction = new Button("Tambah Self-Care");
         try {
             ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
             notesIcon.setFitWidth(32);
             notesIcon.setFitHeight(32);
             notesIcon.setPreserveRatio(true);
-            btnTulis.setGraphic(notesIcon);
-            btnTulis.setGraphicTextGap(10);
+            btnAction.setGraphic(notesIcon);
+            btnAction.setGraphicTextGap(10);
         } catch (Exception e) {
-            System.err.println("Could not load notes icon: " + e.getMessage());
+            System.err.println("Could not load action icon: " + e.getMessage());
         }
-        btnTulis.setStyle("-fx-background-color: white; -fx-text-fill: #A114AC; -fx-font-family: 'Outfit'; -fx-font-size: 25px; -fx-background-radius: 10px; -fx-padding: 16px 32px; -fx-cursor: hand;");
+        btnAction.setStyle("-fx-background-color: white; -fx-text-fill: #A114AC; -fx-font-family: 'Outfit'; -fx-font-size: 25px; -fx-background-radius: 10px; -fx-padding: 16px 32px; -fx-cursor: hand;");
         
-        navLinks.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnTulis);
+        navLinks.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnAction);
 
-        // Profile Photo using Circle + ImagePattern (More robust than clipping)
+        // Helper to update button
+        java.util.function.BiConsumer<String, String> updateActionButton = (text, iconPath) -> {
+            btnAction.setText(text);
+            try {
+                ImageView icon = new ImageView(new Image("file:" + iconPath));
+                icon.setFitWidth(32); icon.setFitHeight(32); icon.setPreserveRatio(true);
+                btnAction.setGraphic(icon);
+            } catch (Exception e) {}
+        };
+
+        // Profile Photo
         Circle profileCircle = new Circle(32, 32, 32);
         profileCircle.setStroke(Color.TRANSPARENT);
         profileCircle.setStyle("-fx-cursor: hand;");
@@ -151,6 +161,7 @@ public class MainApp extends Application {
             navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
             DashboardView dashboardView = new DashboardView();
             root.setCenter(dashboardView.getDashboardView(user, root));
         });
@@ -160,6 +171,7 @@ public class MainApp extends Application {
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
             EntryListView entryListView = new EntryListView(user);
             root.setCenter(entryListView.getView());
         });
@@ -169,39 +181,46 @@ public class MainApp extends Application {
             navKalendar.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            updateActionButton.accept("Tambah Target", "img/icons/calendar.png");
             CalendarView calendarView = new CalendarView(user);
             root.setCenter(calendarView.getView());
         });
 
-        btnTulis.setOnAction(e -> {
+        btnAction.setOnAction(e -> {
             updateNavbarProfile.run();
-            navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-            navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25)); // Set aktif di Jurnal
-            navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-            
-            EntryFormView entryFormView = new EntryFormView(user, () -> {
-                // Aksi saat jurnal berhasil diposting (Kembali ke List)
-                navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
+            if (btnAction.getText().equals("Tulis Jurnal")) {
                 navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                 navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-                EntryListView entryListView = new EntryListView(user);
-                root.setCenter(entryListView.getView());
-            });
-            root.setCenter(entryFormView.getView().getCenter()); // Mengambil kontennya saja tanpa duplikasi navbar
+
+                EntryFormView entryFormView = new EntryFormView(user, () -> {
+                    navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
+                    navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                    navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                    EntryListView entryListView = new EntryListView(user);
+                    root.setCenter(entryListView.getView());
+                });
+                root.setCenter(entryFormView.getView().getCenter());
+            } else {
+                com.juki.view.GoalModal goalModal = new com.juki.view.GoalModal(user, LocalDate.now(), () -> {
+                    CalendarView calendarView = new CalendarView(user);
+                    root.setCenter(calendarView.getView());
+                });
+                goalModal.show();
+            }
         });
 
         // Panggil View Beranda (Dashboard)
         navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25)); // Set aktif di Beranda
+        updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
         DashboardView dashboardView = new DashboardView();
         root.setCenter(dashboardView.getDashboardView(user, root));
 
-        Scene scene = new Scene(root, 1920, 1080);
+        Scene scene = new Scene(root, 1600, 900);
         scene.getStylesheets().add("data:text/css,.chart-series-area-fill { -fx-fill: rgba(255, 105, 180, 0.4); } .chart-series-area-line { -fx-stroke: #FF69B4; -fx-stroke-width: 3px; }");
         primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
-        primaryStage.setFullScreen(true);
-        primaryStage.centerOnScreen();
-        primaryStage.setResizable(false);
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 

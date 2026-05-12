@@ -72,4 +72,22 @@ public class GoalController {
             System.err.println("Error deleting goal: " + e.getMessage());
         }
     }
+
+    public void saveGoalsForDate(LocalDate date, List<SelfCareGoal> goals) {
+        deleteAllGoalsForDate(date);
+        for (SelfCareGoal goal : goals) {
+            addGoal(goal);
+        }
+    }
+
+    public void deleteAllGoalsForDate(LocalDate date) {
+        String sql = "DELETE FROM SelfCareGoal WHERE date = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, date.toString());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting goals for date: " + e.getMessage());
+        }
+    }
 }
