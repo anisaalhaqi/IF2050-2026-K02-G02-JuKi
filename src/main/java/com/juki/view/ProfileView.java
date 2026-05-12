@@ -76,7 +76,7 @@ public class ProfileView {
         
         // Target Stats Card
         GoalController gc = new GoalController();
-        List<SelfCareGoal> allGoals = gc.getGoalsByDate(null);
+        List<SelfCareGoal> allGoals = gc.getGoalsByDate(null, user.getId());
         long totalCompleted = (allGoals != null) ? allGoals.stream().filter(SelfCareGoal::isCompleted).count() : 0;
         
         VBox targetCard = createStatCard(String.valueOf(totalCompleted), "Target Terpenuhi");

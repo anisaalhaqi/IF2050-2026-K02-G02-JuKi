@@ -51,7 +51,9 @@ public class DatabaseHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "title TEXT NOT NULL," +
                 "is_completed INTEGER DEFAULT 0," +
-                "date TEXT NOT NULL" +
+                "date TEXT NOT NULL," +
+                "user_id INTEGER NOT NULL," +
+                "FOREIGN KEY (user_id) REFERENCES User(id)" +
                 ");";
 
         try (Connection conn = getConnection();
@@ -68,6 +70,15 @@ public class DatabaseHelper {
             stmt.execute(sqlPhotoTable);
             stmt.execute(sqlJournalTable);
             stmt.execute(sqlSelfCareTable);
+            
+            // Check if user_id column exists in SelfCareGoal, if not, add it
+            try {
+                stmt.execute("ALTER TABLE SelfCareGoal ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1;");
+                stmt.execute("UPDATE SelfCareGoal SET user_id = 1 WHERE user_id IS NULL;");
+            } catch (SQLException e) {
+                // Column likely already exists, ignore
+            }
+            
             System.out.println("Database initialized successfully.");
         } catch (SQLException e) {
             System.err.println("Error initializing database: " + e.getMessage());

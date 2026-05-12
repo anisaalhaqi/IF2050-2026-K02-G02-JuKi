@@ -7,14 +7,16 @@ public class SelfCareGoal {
     private String title;
     private boolean isCompleted;
     private LocalDate date;
+    private int userId;
 
     public SelfCareGoal() {}
 
-    public SelfCareGoal(Integer id, String title, boolean isCompleted, LocalDate date) {
+    public SelfCareGoal(Integer id, String title, boolean isCompleted, LocalDate date, int userId) {
         this.id = id;
         this.title = title;
         this.isCompleted = isCompleted;
         this.date = date;
+        this.userId = userId;
     }
 
     public Integer getId() { return id; }
@@ -28,4 +30,7 @@ public class SelfCareGoal {
 
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
 }

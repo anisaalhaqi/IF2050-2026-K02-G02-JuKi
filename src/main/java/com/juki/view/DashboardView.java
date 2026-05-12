@@ -42,7 +42,7 @@ public class DashboardView {
         List<JournalEntry> entries = entryController.getAllEntries(user.getId());
         
         GoalController goalController = new GoalController();
-        List<SelfCareGoal> todayGoals = goalController.getGoalsByDate(LocalDate.now());
+        List<SelfCareGoal> todayGoals = goalController.getGoalsByDate(LocalDate.now(), user.getId());
 
         VBox content = new VBox(48);
         content.setPadding(new Insets(52, 100, 52, 100));
