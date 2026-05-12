@@ -2,7 +2,7 @@
 
 **JuKi** adalah platform jurnal digital modern yang dirancang untuk membantu pengguna dalam mengelola kesehatan mental dan rutinitas perawatan diri (*self-care*). Platform ini mengintegrasikan fitur penulisan jurnal tradisional dengan sistem pelacakan target *self-care* dan visualisasi data emosi untuk memberikan gambaran menyeluruh tentang kesejahteraan pengguna.
 
-## Fitur Utama
+## 🚀 Fitur Utama
 
 - **Manajemen Jurnal:** Tulis, simpan, dan cari entri jurnal harian Anda dengan mudah.
 - **Target Self-Care:** Atur dan pantau tujuan harian Anda untuk menjaga kesehatan fisik dan mental.
@@ -10,35 +10,54 @@
 - **Visualisasi Analytics:** Lihat grafik perkembangan emosi dan aktivitas Anda dari waktu ke waktu.
 - **Manajemen Profil:** Personalisasi akun Anda dengan foto profil dan detail pengguna.
 
-## Struktur Folder
+## 📂 Struktur Folder
 
 ```text
-JuKi-Desktop/
-├── data/               # Penyimpanan database SQLite (juki.db)
-├── doc/                # Dokumentasi proyek
-├── img/                # Aset gambar (ikon, emoji, emosi, dashboard)
+IF2050-2026-K02-G02-JuKi/
+├── data/                       # Database SQLite
+│   └── juki.db                 # File database utama
+├── doc/                        # Dokumentasi teknis proyek
+├── img/                        # Aset gambar & UI
+│   ├── dashboard/              # Ikon & grafis dashboard
+│   ├── emojis/                 # Aset emoji
+│   ├── emotions/               # Ikon mood (angry, joyful, dll)
+│   ├── icons/                  # Ikon navigasi (panah, kalender, dll)
+│   └── selfcare/               # Ikon status target self-care
 ├── src/
-│   └── main/
-│       └── java/
-│           └── com/juki/
-│               ├── controller/  # Logika bisnis dan penghubung View-Model
-│               ├── db/          # Helper untuk koneksi database SQLite
-│               ├── model/       # Entitas data (User, Entry, Goal, dll)
-│               ├── view/        # Antarmuka pengguna (JavaFX)
-│               └── MainApp.java # Titik masuk utama aplikasi
-├── tests/              # File pengujian unit
-├── pom.xml             # Konfigurasi Maven dan dependensi
-└── README.md           # Dokumentasi utama proyek
+│   └── main/java/com/juki/
+│       ├── controller/         # Logika kontrol (Bridge antara UI & Data)
+│       │   ├── AnalyticsController.java
+│       │   ├── EntryController.java
+│       │   ├── GoalController.java
+│       │   ├── MoodController.java
+│       │   └── RegistrationFormController.java
+│       ├── db/                 # Konfigurasi Database
+│       │   └── DatabaseHelper.java
+│       ├── model/              # Struktur data (POJO)
+│       │   ├── DailyMood.java
+│       │   ├── JournalEntry.java
+│       │   ├── SelfCareGoal.java
+│       │   └── User.java
+│       ├── view/               # Antarmuka Pengguna (JavaFX)
+│       │   ├── DashboardView.java
+│       │   ├── CalendarView.java
+│       │   ├── EntryFormView.java
+│       │   ├── ProfileView.java
+│       │   └── RegistrationFormView.java
+│       └── MainApp.java        # Entry point aplikasi
+├── tests/                      # Unit testing
+├── pom.xml                     # Manajemen dependensi Maven
+└── README.md                   # Dokumentasi proyek
 ```
 
-## Prasyarat
+## 🛠️ Prasyarat
 
 Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
 
 - **Java Development Kit (JDK) 21** atau versi yang lebih baru.
 - **Apache Maven** untuk manajemen proyek.
 
-## Cara Menjalankan Aplikasi
+## ⚙️ Cara Menjalankan Aplikasi
 
 1. **Clone Repositori**
    ```bash
@@ -59,11 +78,13 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
 
 ## 👥 Anggota Kelompok (G02)
 
-1. **Anisa Aulia Alhaqi** - 18224080
-2. **Danya Soe** - 18224024
-3. **Nadine Octavia** - 18224012
-4. **Riko Satriya Giovanni** - 18224108 
-5. **Zahra Nur Azizah** - 18224092
+| No | Nama | NIM |
+|:---:|:---|:---:|
+| 1 | Nadine Octavia | 18224012 |
+| 2 | Danya Soe | 18224024 |
+| 3 | Anisa Aulia Alhaqi | 18224080 |
+| 4 | Zahra Nur Azizah | 18224092 |
+| 5 | Riko Satriya Giovanni | 18224108 |
 
 ---
 
