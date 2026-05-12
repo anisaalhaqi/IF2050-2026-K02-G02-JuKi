@@ -29,7 +29,8 @@ public class DatabaseHelper {
 
         String sqlPhotoTable = "CREATE TABLE IF NOT EXISTS Photo (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "filePath TEXT NOT NULL" +
+                "filePath TEXT NOT NULL," +
+                "journal_entry_id INTEGER" +
                 ");";
 
         String sqlJournalTable = "CREATE TABLE IF NOT EXISTS JournalEntry (" +
@@ -41,9 +42,8 @@ public class DatabaseHelper {
                 "target TEXT," +
                 "date TEXT," +
                 "time TEXT," +
-                "photo_id INTEGER," +
+                "photo_id TEXT," +
                 "user_id INTEGER," +
-                "FOREIGN KEY (photo_id) REFERENCES Photo(id)," +
                 "FOREIGN KEY (user_id) REFERENCES User(id)" +
                 ");";
 
@@ -68,6 +68,11 @@ public class DatabaseHelper {
             }
 
             stmt.execute(sqlPhotoTable);
+            try {
+                stmt.execute("ALTER TABLE Photo ADD COLUMN journal_entry_id INTEGER;");
+            } catch (SQLException e) {
+                // Column likely already exists, ignore
+            }
             stmt.execute(sqlJournalTable);
             stmt.execute(sqlSelfCareTable);
             

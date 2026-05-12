@@ -5,20 +5,29 @@ import com.juki.model.JournalEntry;
 import com.juki.model.User;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 public class EntryFormView {
     private TextField titleField;
     private ComboBox<String> catCombo;
     private TextField causeField;
     private TextArea writeArea;
+    private FlowPane selectedImagePane;
+    private List<String> selectedPhotoPaths = new ArrayList<>();
     private User user;
     private Runnable onPostSuccess;
 
@@ -129,22 +138,60 @@ public class EntryFormView {
         row4.getChildren().addAll(causeLbl, causeField);
 
         // Baris 5: Area Tulis Jurnal
-        HBox row5 = new HBox(15);
+        VBox row5 = new VBox(15);
+        row5.setPadding(new Insets(10));
+        row5.setStyle(
+            "-fx-background-color: #FFFFFF; " +      
+            "-fx-border-color: #E0E0E0; " +          
+            "-fx-border-width: 1px; " +              
+            "-fx-border-radius: 10px; " +            
+            "-fx-background-radius: 10px;"
+        );
         Button btnImage = new Button("📷");
         btnImage.setShape(new Circle(25));
         btnImage.setMinSize(50, 50);
         btnImage.setMaxSize(50, 50);
-        btnImage.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #888888; -fx-font-size: 20px; -fx-cursor: hand;");
+        btnImage.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #e6e5e5; -fx-font-size: 20px; -fx-cursor: hand;");
         btnImage.setOnAction(e -> handleUploadImage());
 
+        selectedImagePane = new FlowPane(10, 10);
+        selectedImagePane.setPrefWrapLength(280);
+        selectedImagePane.setMaxWidth(280);
+        selectedImagePane.setStyle("-fx-background-color: transparent;");
+
+        Label imagePreviewLabel = new Label("Pratinjau gambar akan muncul setelah memilih file.");
+        imagePreviewLabel.setStyle("-fx-text-fill: #9E9E9E; -fx-font-size: 12px;");
+
+        VBox imagePreviewBox = new VBox(10, imagePreviewLabel, selectedImagePane);
+        imagePreviewBox.setAlignment(Pos.CENTER_LEFT);
+        imagePreviewBox.setPrefWidth(280);
+
+        HBox imageBox = new HBox(15, btnImage, imagePreviewBox);
+        imageBox.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(imagePreviewBox, Priority.ALWAYS);
+
         writeArea = new TextArea();
-        writeArea.setPromptText("Tulis ceritamu hari ini!");
-        writeArea.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: transparent; -fx-font-size: 16px;");
+        String originalPrompt = "Tulis ceritamu hari ini!";
+        writeArea.setPromptText(originalPrompt);
+
+        // Tambahkan logika hilangkan prompt saat fokus
+        writeArea.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                // Jika kotak diklik (fokus), hilangkan prompt text
+                writeArea.setPromptText("");
+            } else {
+                // Jika klik di luar kotak (hilang fokus) dan kosong, munculkan lagi
+                if (writeArea.getText().isEmpty()) {
+                    writeArea.setPromptText(originalPrompt);
+                }
+            }
+        });
+        writeArea.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: transparent; -fx-text-fill: black; -fx-prompt-text-fill: #9E9E9E; -fx-font-size: 12px; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
         writeArea.setPrefHeight(200);
         writeArea.setWrapText(true);
-        HBox.setHgrow(writeArea, Priority.ALWAYS); // Memenuhi sisa ruang
+        VBox.setVgrow(writeArea, Priority.ALWAYS);
         
-        row5.getChildren().addAll(btnImage, writeArea);
+        row5.getChildren().addAll(imageBox, writeArea);
 
         // Baris 6: Card Target Hari Ini
         VBox row6 = new VBox(15);
@@ -201,7 +248,15 @@ public class EntryFormView {
         entry.setTime(LocalTime.now());
         entry.setUserId(user.getId());
 
-        controller.addEntry(entry); // Simpan ke database
+        if (!selectedPhotoPaths.isEmpty()) {
+            List<com.juki.model.Photo> photos = new ArrayList<>();
+            for (String path : selectedPhotoPaths) {
+                photos.add(new com.juki.model.Photo(null, path));
+            }
+            entry.setPhotos(photos);
+        }
+
+        controller.saveJournal(entry); // Simpan ke database
 
         if (onPostSuccess != null) {
             onPostSuccess.run(); // Alihkan layar via callback
@@ -209,7 +264,28 @@ public class EntryFormView {
     }
 
     private void handleUploadImage() {
-        System.out.println("Membuka FileChooser untuk memilih foto jurnal...");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pilih Gambar Jurnal");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(writeArea.getScene() != null ? writeArea.getScene().getWindow() : null);
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return;
+        }
+
+        for (File selectedFile : selectedFiles) {
+            String absolutePath = selectedFile.getAbsolutePath();
+            selectedPhotoPaths.add(absolutePath);
+            Image image = new Image(new File(absolutePath).toURI().toString(), 120, 0, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(120);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            selectedImagePane.getChildren().add(imageView);
+            System.out.println("Gambar berhasil dipilih: " + absolutePath);
+        }
     }
 
     private void handleAddTarget() {
