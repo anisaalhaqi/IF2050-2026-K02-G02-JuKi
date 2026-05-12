@@ -1,10 +1,10 @@
 package com.juki.view;
 
 import com.juki.controller.EntryController;
-import com.juki.controller.GoalController;
 import com.juki.model.JournalEntry;
 import com.juki.model.SelfCareGoal;
 import com.juki.model.User;
+import com.juki.service.GoalService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,6 +18,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.collections.MapChangeListener;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -32,17 +34,23 @@ public class CalendarView {
     private VBox targetBox;
     private LocalDate selectedDate;
     
-    private EntryController entryController;
-    private GoalController goalController;
+    private final GoalService goalService = GoalService.getInstance();
+    private final EntryController entryController = new EntryController();
     private List<JournalEntry> entries;
+
+    private static final String MUTED_STYLE = "-fx-text-fill: #A5A5A5; -fx-opacity: 0.8;";
 
     public CalendarView(User user) {
         this.currentUser = user;
         this.currentMonth = new LocalDate[]{LocalDate.now().withDayOfMonth(1)};
         this.selectedDate = LocalDate.now();
-        this.entryController = new EntryController();
-        this.goalController = new GoalController();
         this.entries = entryController.getAllEntries(user.getId());
+        
+        // Subscribe to changes for realtime sync
+        goalService.getGoalsCache().addListener((MapChangeListener<LocalDate, List<SelfCareGoal>>) change -> {
+            renderCalendar();
+            updateSidebarTargets();
+        });
     }
 
     public HBox getView() {
@@ -59,12 +67,12 @@ public class CalendarView {
         contentSidebar.setStyle("-fx-background-color: white; -fx-background-radius: 20px; -fx-padding: 24px 16px;");
         contentSidebar.setAlignment(Pos.TOP_CENTER);
 
-        int streakCountVal = (int) entries.stream().map(JournalEntry::getDate).distinct().count();
         VBox streakBox = new VBox(8);
         streakBox.setAlignment(Pos.CENTER);
         HBox streakValueBox = new HBox(8);
         streakValueBox.setAlignment(Pos.CENTER);
-        Label streakNum = new Label(String.valueOf(streakCountVal));
+        Label streakNum = new Label();
+        streakNum.textProperty().bind(goalService.streakProperty().asString());
         streakNum.setFont(Font.font("Outfit", FontWeight.MEDIUM, 50));
         ImageView fireImage = new ImageView(new Image("file:img/beranda/streak_fire.png"));
         fireImage.setFitWidth(42); fireImage.setPreserveRatio(true);
@@ -123,9 +131,11 @@ public class CalendarView {
         Label targetTitle = new Label("Target Self-care");
         targetTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
         targetBox.getChildren().add(targetTitle);
-        List<SelfCareGoal> goals = goalController.getGoalsByDate(selectedDate);
+        List<SelfCareGoal> goals = goalService.getGoalsForDate(selectedDate);
         if (goals.isEmpty()) {
-            targetBox.getChildren().add(new Label("Belum ada target."));
+            Label noTarget = new Label("Belum ada target.");
+            noTarget.setStyle(MUTED_STYLE);
+            targetBox.getChildren().add(noTarget);
         } else {
             for (SelfCareGoal goal : goals) {
                 HBox tItem = new HBox(16);
@@ -134,7 +144,9 @@ public class CalendarView {
                 dot.setStroke(Color.web("#82DD55"));
                 Label tLbl = new Label(goal.getTitle());
                 tLbl.setFont(Font.font("Outfit", 18));
-                if (goal.isCompleted()) tLbl.setStyle("-fx-text-decoration: line-through;");
+                if (goal.isCompleted()) {
+                    tLbl.setStyle("-fx-text-decoration: line-through; -fx-text-fill: #767676;");
+                }
                 tItem.getChildren().addAll(dot, tLbl);
                 targetBox.getChildren().add(tItem);
             }
@@ -153,27 +165,30 @@ public class CalendarView {
                 VBox cell = new VBox(6);
                 cell.setAlignment(Pos.TOP_CENTER);
                 cell.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-width: 0 1px 1px " + (col == 0 ? "1px" : "0") + "; -fx-padding: 8px; -fx-cursor: hand;");
+                
                 if (row == 0) {
                     Label dName = new Label(cellDate.getDayOfWeek().getDisplayName(java.time.format.TextStyle.FULL, Locale.US));
                     dName.setFont(Font.font("Outfit", FontWeight.LIGHT, 12));
-                    dName.setTextFill(Color.web("rgba(0,0,0,0.2)"));
+                    dName.setStyle(MUTED_STYLE);
                     cell.getChildren().add(dName);
                 }
+
                 StackPane datePane = new StackPane();
                 Label dateLbl = new Label(String.valueOf(cellDate.getDayOfMonth()));
                 dateLbl.setFont(Font.font("Outfit", FontWeight.MEDIUM, 18));
+                
                 if (cellDate.equals(LocalDate.now())) {
                     Circle bg = new Circle(15, Color.web("#FFE341"));
                     datePane.getChildren().addAll(bg, dateLbl);
                 } else if (cellDate.getMonth() != currentMonth[0].getMonth()) {
-                    dateLbl.setTextFill(Color.web("rgba(0,0,0,0.2)"));
+                    dateLbl.setStyle(MUTED_STYLE);
                     datePane.getChildren().add(dateLbl);
                 } else {
                     datePane.getChildren().add(dateLbl);
                 }
                 cell.getChildren().add(datePane);
 
-                List<SelfCareGoal> dayGoals = goalController.getGoalsByDate(cellDate);
+                List<SelfCareGoal> dayGoals = goalService.getGoalsForDate(cellDate);
                 if (!dayGoals.isEmpty()) {
                     VBox targetList = new VBox(2);
                     for (int i = 0; i < Math.min(dayGoals.size(), 3); i++) {
@@ -187,7 +202,9 @@ public class CalendarView {
                         targetList.getChildren().add(tBox);
                     }
                     if (dayGoals.size() > 3) {
-                        targetList.getChildren().add(new Label("+ " + (dayGoals.size() - 3) + " lainnya"));
+                        Label moreLbl = new Label("+ " + (dayGoals.size() - 3) + " lainnya");
+                        moreLbl.setStyle(MUTED_STYLE);
+                        targetList.getChildren().add(moreLbl);
                     }
                     cell.getChildren().add(targetList);
                 }
@@ -207,53 +224,87 @@ public class CalendarView {
     private void showDetailModal(LocalDate date) {
         Stage modal = new Stage();
         modal.initModality(Modality.APPLICATION_MODAL);
-        VBox root = new VBox(20);
-        root.setStyle("-fx-background-color: white; -fx-padding: 20px; -fx-background-radius: 15px;");
-        root.setPrefWidth(400);
+        modal.initStyle(StageStyle.TRANSPARENT);
+        
+        StackPane backdrop = new StackPane();
+        backdrop.setStyle("-fx-background-color: rgba(0, 0, 0, 0.40);");
+        backdrop.setPrefSize(1920, 1080);
+        backdrop.setOnMouseClicked(e -> {
+            if (e.getTarget() == backdrop) modal.close();
+        });
 
+        VBox root = new VBox(24);
+        root.setStyle("-fx-background-color: white; -fx-padding: 55px; -fx-background-radius: 34.78px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.20), 10, 0, 0, 0);");
+        root.setMinWidth(688); root.setMaxWidth(688); root.setPrefWidth(688);
+
+        // HEADER ROW
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         Label title = new Label("Target Self-Care");
-        title.setFont(Font.font("Outfit", FontWeight.BOLD, 18));
+        title.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
+        title.setTextFill(Color.web("#292929"));
         Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
+        HBox rightHeader = new HBox(16);
+        rightHeader.setAlignment(Pos.CENTER_RIGHT);
         Label dateStr = new Label(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
+        dateStr.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
+        dateStr.setTextFill(Color.web("#767676"));
         Button btnMore = new Button("⋮");
-        btnMore.setStyle("-fx-background-color: transparent; -fx-font-size: 20;");
+        btnMore.setPrefSize(39, 39);
+        btnMore.setStyle("-fx-background-color: transparent; -fx-font-size: 25px; -fx-padding: 0; -fx-cursor: hand;");
         
         ContextMenu menu = new ContextMenu();
+        menu.setStyle("-fx-background-color: white; -fx-background-radius: 10px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.20), 10, 0, 0, 0); -fx-padding: 0;");
         MenuItem edit = new MenuItem("Edit Self-Care");
-        edit.setOnAction(e -> { modal.close(); new GoalModal(currentUser, date, this::renderCalendar).show(); });
+        edit.setStyle("-fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-font-weight: 300; -fx-padding: 28 28 13 28; -fx-pref-width: 214;");
+        edit.setOnAction(e -> { modal.close(); new GoalModal(currentUser, date, () -> goalService.refreshDate(date), true).show(); });
         MenuItem delete = new MenuItem("Hapus Self-Care");
-        delete.setOnAction(e -> { goalController.deleteAllGoalsForDate(date); renderCalendar(); updateSidebarTargets(); modal.close(); });
+        delete.setStyle("-fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-font-weight: 300; -fx-padding: 13 28 28 28; -fx-pref-width: 236;");
+        delete.setOnAction(e -> {
+            new DeleteConfirmationModal(() -> {
+                goalService.deleteAllForDate(date);
+                modal.close();
+            }).show();
+        });
         menu.getItems().addAll(edit, delete);
         btnMore.setOnAction(e -> menu.show(btnMore, javafx.geometry.Side.BOTTOM, 0, 0));
 
-        header.getChildren().addAll(title, s, dateStr, btnMore);
+        rightHeader.getChildren().addAll(dateStr, btnMore);
+        header.getChildren().addAll(title, s, rightHeader);
         
-        VBox list = new VBox(10);
-        List<SelfCareGoal> goals = goalController.getGoalsByDate(date);
+        VBox list = new VBox(8);
+        List<SelfCareGoal> goals = goalService.getGoalsForDate(date);
         for (SelfCareGoal g : goals) {
-            HBox item = new HBox(10);
+            HBox item = new HBox();
+            item.setPrefHeight(40);
             item.setAlignment(Pos.CENTER_LEFT);
             Label lbl = new Label(g.getTitle());
-            lbl.setFont(Font.font("Outfit", 16));
-            if (g.isCompleted()) lbl.setStyle("-fx-text-decoration: line-through; -fx-text-fill: grey;");
+            lbl.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
+            lbl.setTextFill(Color.BLACK);
+            if (g.isCompleted()) lbl.setStyle("-fx-text-decoration: line-through;");
             Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-            Circle toggle = new Circle(12, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT);
-            toggle.setStroke(Color.web("#82DD55"));
+            StackPane toggle = new StackPane();
+            toggle.setPrefSize(35, 35);
             toggle.setStyle("-fx-cursor: hand;");
+            Circle circle = new Circle(17.5);
+            if (g.isCompleted()) { circle.setFill(Color.web("#82DD55")); }
+            else { circle.setFill(Color.TRANSPARENT); circle.setStroke(Color.web("#82DD55")); circle.setStrokeWidth(2); }
+            toggle.getChildren().add(circle);
             toggle.setOnMouseClicked(e -> {
-                goalController.updateGoalStatus(g.getId(), !g.isCompleted());
+                goalService.toggleGoalStatus(g);
                 modal.close();
                 showDetailModal(date);
-                renderCalendar();
-                updateSidebarTargets();
             });
             item.getChildren().addAll(lbl, sp, toggle);
             list.getChildren().add(item);
         }
         root.getChildren().addAll(header, list);
-        modal.setScene(new Scene(root));
+        backdrop.getChildren().add(root);
+        StackPane.setAlignment(root, Pos.CENTER);
+        Scene scene = new Scene(backdrop);
+        scene.setFill(Color.TRANSPARENT);
+        modal.setScene(scene);
         modal.show();
+        modal.centerOnScreen();
     }
 }
