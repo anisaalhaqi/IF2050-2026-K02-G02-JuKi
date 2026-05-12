@@ -70,40 +70,56 @@ public class RegistrationFormView {
 
         VBox nameBox = createFieldGroup("Username", "Masukkan namamu", false);
         siUsernameField = (TextField) nameBox.getUserData();
+        Label usernameErrorLabel = createFieldErrorLabel("Username wajib diisi");
 
         VBox passwordBox = createFieldGroup("Password", "Masukkan password", true);
         siPasswordField = (TextField) passwordBox.getUserData();
+        Label passwordErrorLabel = createFieldErrorLabel("Password wajib diisi");
 
-        fieldsBox.getChildren().addAll(nameBox, passwordBox);
+        fieldsBox.getChildren().addAll(nameBox, usernameErrorLabel, passwordBox, passwordErrorLabel);
 
         VBox actionsBox = new VBox(16);
         actionsBox.setPrefWidth(480);
 
-        Label errorLabel = new Label();
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setFont(Font.font("Outfit", 12));
+        Label loginErrorLabel = createFieldErrorLabel("Username atau Password salah!");
 
         Button loginButton = createPrimaryButton("Masuk");
         loginButton.setOnAction(e -> {
             String username = siUsernameField.getText().trim();
             String password = siPasswordField.getText();
-            if (username.isEmpty() || password.isEmpty()) {
-                errorLabel.setText("Username dan Password tidak boleh kosong!");
-                return;
+            
+            // Reset errors
+            usernameErrorLabel.setVisible(false); usernameErrorLabel.setManaged(false);
+            passwordErrorLabel.setVisible(false); passwordErrorLabel.setManaged(false);
+            loginErrorLabel.setVisible(false); loginErrorLabel.setManaged(false);
+
+            boolean hasError = false;
+            if (username.isEmpty()) {
+                usernameErrorLabel.setVisible(true);
+                usernameErrorLabel.setManaged(true);
+                hasError = true;
             }
+            if (password.isEmpty()) {
+                passwordErrorLabel.setVisible(true);
+                passwordErrorLabel.setManaged(true);
+                hasError = true;
+            }
+            
+            if (hasError) return;
             
             User user = controller.signIn(username, password);
             if (user != null) {
                 onSuccess.accept(user);
             } else {
-                errorLabel.setText("Username atau Password salah!");
+                loginErrorLabel.setVisible(true);
+                loginErrorLabel.setManaged(true);
             }
         });
 
         HBox switchBox = createSwitchBox("Belum punya akun?", "Daftar");
         switchBox.getChildren().get(1).setOnMouseClicked(e -> showSignUpPage());
 
-        actionsBox.getChildren().addAll(loginButton, switchBox, errorLabel);
+        actionsBox.getChildren().addAll(loginButton, switchBox, loginErrorLabel);
         
         formContainer.getChildren().addAll(fieldsBox, actionsBox);
         card.getChildren().addAll(title, formContainer);
