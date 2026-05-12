@@ -50,6 +50,7 @@ public class MainApp extends Application {
     }
 
     private void showMainDashboard(Stage primaryStage, User user) {
+        com.juki.service.GoalService.getInstance().setCurrentUser(user);
         BorderPane root = new BorderPane();
         
         // Top Navigation Bar
