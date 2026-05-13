@@ -91,15 +91,15 @@ Aplikasi menggunakan SQLite dengan skema tabel sebagai berikut:
 
 ## 👥 Pembagian Tugas Implementasi (G02)
 
-Setiap anggota bertanggung jawab minimal atas satu modul yang mencakup antarmuka (View) dan logika (Controller/Service).
+Setiap anggota bertanggung jawab minimal atas satu bagian yang mencakup Model, Antarmuka (View), dan Logika (Controller/Service).
 
-| No | Nama | NIM | Modul | View | Controller / Helper |
+| No | Nama | NIM | Model | View | Controller / Helper |
 |:---:|:---|:---:|:---|:---|:---|
-| 1 | Nadine Octavia | 18224012 | **Target Self-Care & Kalender** | `CalendarView`, `GoalModal` | `GoalController`, `GoalService` |
-| 2 | Danya Soe | 18224024 | **Manajemen Jurnal (CRUD) & Basis Data** | `EntryFormView`, `EntryDetailView` | `EntryController`, `DatabaseHelper` |
-| 3 | Anisa Aulia Alhaqi | 18224080 | **Manajemen Profil** | `ProfileView`, `EntryManagerView` | `ProfileManager` |
-| 4 | Zahra Nur Azizah | 18224092 | **Autentikasi & Pencarian** | `RegistrationFormView`, `EntryListView`, `SearchView` | `RegistrationFormController`, `SearchController` |
-| 5 | Riko Satriya Giovanni | 18224108 | **Dashboard & Analisis Mood** | `DashboardView`, `VisualizerView` | `AnalyticsController`, `MoodController` |
+| 1 | Nadine Octavia | 18224012 | `SelfCareGoal` | `CalendarView`, `GoalModal` | `GoalController`, `GoalService` |
+| 2 | Danya Soe | 18224024 | `JournalEntry`, `Photo` | `EntryFormView`, `EntryDetailView` | `EntryController`, `DatabaseHelper` |
+| 3 | Anisa Aulia Alhaqi | 18224080 | `User` (Profile) | `ProfileView`, `EntryManagerView` | `ProfileManager` |
+| 4 | Zahra Nur Azizah | 18224092 | `SearchFilter` | `RegistrationFormView`, `EntryListView`, `SearchView` | `RegistrationFormController`, `SearchController` |
+| 5 | Riko Satriya Giovanni | 18224108 | `DailyMood` | `DashboardView`, `VisualizerView` | `AnalyticsController`, `MoodController` |
 
 ---
 
