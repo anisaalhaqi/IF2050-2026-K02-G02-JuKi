@@ -106,7 +106,19 @@ public class CalendarView {
 
         grid = new GridPane(); VBox.setVgrow(grid, Priority.ALWAYS);
         for (int i = 0; i < 7; i++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(100.0/7.0); grid.getColumnConstraints().add(cc); }
-        for (int i = 0; i < 6; i++) { RowConstraints rc = new RowConstraints(); rc.setPercentHeight(100.0/6.0); grid.getRowConstraints().add(rc); }
+        grid.getRowConstraints().clear();
+
+        // HEADER HARI
+        RowConstraints headerRow = new RowConstraints();
+        headerRow.setPercentHeight(8);
+        grid.getRowConstraints().add(headerRow);
+
+        // ROW TANGGAL
+        for (int i = 0; i < 6; i++) {
+            RowConstraints rc = new RowConstraints();
+            rc.setPercentHeight(15.3);
+            grid.getRowConstraints().add(rc);
+        }
 
         btnPrev.setOnMouseClicked(e -> { currentMonth[0] = currentMonth[0].minusMonths(1); renderCalendar(); });
         btnNext.setOnMouseClicked(e -> { currentMonth[0] = currentMonth[0].plusMonths(1); renderCalendar(); });
@@ -151,10 +163,28 @@ public class CalendarView {
     private void renderCalendar() {
         if (grid == null) return;
         grid.getChildren().clear();
+        String[] days = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+        for (int i = 0; i < 7; i++) {
+            StackPane dayHeader = new StackPane();
+            dayHeader.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-border-color: #D6D6D6;" +
+                "-fx-border-width: 0 1px 1px " + (i == 0 ? "1px" : "0") + ";" +
+                "-fx-padding: 12px;"
+            );
+
+            Label dayLabel = new Label(days[i]);
+            dayLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 16));
+            dayLabel.setTextFill(Color.web("#767676"));
+
+            dayHeader.getChildren().add(dayLabel);
+
+            grid.add(dayHeader, i, 0);
+        }
         monthLabel.setText(currentMonth[0].getMonth().name() + " " + currentMonth[0].getYear());
         int dayOfWeek = currentMonth[0].getDayOfWeek().getValue() % 7;
         LocalDate currentDay = currentMonth[0].minusDays(dayOfWeek);
-        for (int row = 0; row < 6; row++) {
+        for (int row = 1; row <= 6; row++) {
             for (int col = 0; col < 7; col++) {
                 final LocalDate cellDate = currentDay;
                 VBox cell = new VBox(6); cell.setAlignment(Pos.TOP_CENTER);
@@ -218,7 +248,7 @@ public class CalendarView {
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
         
         Label dateLbl = new Label(date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.US))); 
-        dateLbl.setFont(Font.font("Outfit", 16)); dateLbl.setTextFill(Color.web("#767676"));
+        dateLbl.setFont(Font.font("Outfit", 16)); dateLbl.setTextFill(Color.web("#5a5a5a"));
         
         StackPane moreBtn = new StackPane();
         moreBtn.getStyleClass().add("more-menu-button");
