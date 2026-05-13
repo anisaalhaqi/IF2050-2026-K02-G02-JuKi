@@ -18,7 +18,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.collections.MapChangeListener;
 import javafx.application.Platform;
 
@@ -171,27 +170,104 @@ public class CalendarView {
     }
 
     private void showDetailModal(LocalDate date) {
-        Stage stage = new Stage(); stage.initModality(Modality.APPLICATION_MODAL); stage.initStyle(StageStyle.TRANSPARENT);
-        StackPane b = new StackPane(); b.setStyle("-fx-background-color: rgba(0,0,0,0.4);");
-        b.setOnMouseClicked(e -> { if (e.getTarget() == b) stage.close(); });
-        VBox r = new VBox(24); r.setStyle("-fx-background-color: white; -fx-padding: 55; -fx-background-radius: 34.78;");
-        r.setMinWidth(688); r.setMaxWidth(688);
-        HBox h = new HBox(); h.setAlignment(Pos.CENTER_LEFT);
-        Label t = new Label("Target Self-Care"); t.setFont(Font.font("Outfit", 29.57));
-        Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
-        Label d = new Label(date.toString()); d.setFont(Font.font(29.57)); d.setTextFill(Color.web("#767676"));
-        h.getChildren().addAll(t, s, d);
-        VBox l = new VBox(10);
-        for (SelfCareGoal g : goalService.getGoalsForDate(date)) {
-            HBox item = new HBox(); item.setAlignment(Pos.CENTER_LEFT);
-            Label lbl = new Label(g.getTitle()); lbl.setFont(Font.font(20));
-            if (g.isCompleted()) lbl.setStyle("-fx-text-decoration: line-through;");
-            Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-            Circle c = new Circle(15, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); c.setStroke(Color.web("#82DD55"));
-            c.setOnMouseClicked(e -> { goalService.toggleGoalStatus(g); stage.close(); showDetailModal(date); });
-            item.getChildren().addAll(lbl, sp, c); l.getChildren().add(item);
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        VBox modalRoot = new VBox(30);
+        modalRoot.setPadding(new Insets(40));
+        modalRoot.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-width: 1.4; -fx-border-radius: 28; -fx-background-radius: 28;");
+        modalRoot.setPrefWidth(600);
+
+        // HEADER WITH CLOSE BUTTON
+        HBox headerRow = new HBox(20);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+        Label headerLabel = new Label("Target Self-Care");
+        headerLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 24));
+        headerLabel.setTextFill(Color.web("#292929"));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeButton = new Button("✕");
+        closeButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #292929; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 5px 10px;");
+        closeButton.setOnAction(e -> stage.close());
+
+        headerRow.getChildren().addAll(headerLabel, spacer, closeButton);
+
+        // DATE SECTION
+        VBox dateContainer = new VBox(10);
+        Label dateLabel = new Label("Tanggal");
+        dateLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
+        dateLabel.setTextFill(Color.web("#292929"));
+
+        HBox dateRow = new HBox(10);
+        dateRow.setAlignment(Pos.CENTER_LEFT);
+        
+        Label dateValue = new Label(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))));
+        dateValue.setFont(Font.font("Outfit", FontWeight.NORMAL, 14));
+        dateValue.setTextFill(Color.web("#434343"));
+        
+        dateRow.getChildren().add(dateValue);
+        dateContainer.getChildren().addAll(dateLabel, dateRow);
+
+        // TARGET LIST SECTION
+        VBox listSection = new VBox(10);
+        Label listLabel = new Label("Daftar Target");
+        listLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
+        listLabel.setTextFill(Color.web("#292929"));
+
+        VBox targetListContainer = new VBox(8);
+        List<SelfCareGoal> goals = goalService.getGoalsForDate(date);
+        if (goals.isEmpty()) {
+            Label placeholder = new Label("Tidak ada daftar target");
+            placeholder.setFont(Font.font("Outfit", FontWeight.NORMAL, 13));
+            placeholder.setTextFill(Color.web("rgba(0,0,0,0.30)"));
+            targetListContainer.getChildren().add(placeholder);
+        } else {
+            for (SelfCareGoal g : goals) {
+                HBox item = new HBox(10);
+                item.setAlignment(Pos.CENTER_LEFT);
+                item.setStyle("-fx-padding: 8px; -fx-background-color: #FAE7FF; -fx-background-radius: 8; -fx-border-color: #E8D5F2; -fx-border-width: 1; -fx-border-radius: 8;");
+                
+                Circle statusCircle = new Circle(8, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT);
+                statusCircle.setStroke(Color.web("#82DD55"));
+                statusCircle.setStyle("-fx-cursor: hand;");
+                statusCircle.setOnMouseClicked(e -> {
+                    goalService.toggleGoalStatus(g);
+                    stage.close();
+                    showDetailModal(date);
+                });
+                
+                Label lbl = new Label(g.getTitle());
+                lbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 13));
+                lbl.setTextFill(Color.web("#434343"));
+                lbl.setWrapText(true);
+                lbl.setMaxWidth(400);
+                if (g.isCompleted()) lbl.setStyle("-fx-text-decoration: line-through; -fx-text-fill: #999999;");
+                
+                Region s = new Region();
+                HBox.setHgrow(s, Priority.ALWAYS);
+                
+                item.getChildren().addAll(statusCircle, lbl, s);
+                targetListContainer.getChildren().add(item);
+            }
         }
-        r.getChildren().addAll(h, l); b.getChildren().add(r);
-        stage.setScene(new Scene(b)); stage.show();
+        listSection.getChildren().addAll(listLabel, targetListContainer);
+
+        // CLOSE BUTTON
+        HBox buttonRow = new HBox(12);
+        buttonRow.setAlignment(Pos.CENTER);
+        Button btnClose = new Button("Tutup");
+        btnClose.setPrefWidth(130);
+        btnClose.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-background-radius: 12.5px; -fx-padding: 12px 24px; -fx-cursor: hand;");
+        btnClose.setOnAction(e -> stage.close());
+        buttonRow.getChildren().add(btnClose);
+
+        modalRoot.getChildren().addAll(headerRow, dateContainer, listSection, buttonRow);
+
+        Scene scene = new Scene(modalRoot);
+        stage.setScene(scene);
+        stage.centerOnScreen();
+        stage.show();
     }
 }

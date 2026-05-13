@@ -13,11 +13,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
 import java.time.LocalDate;
@@ -53,97 +51,120 @@ public class GoalModal {
     private void initialize() {
         stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(StageStyle.TRANSPARENT);
 
-        // OUTER CONTAINER (Full Screen Backdrop)
-        StackPane backdrop = new StackPane();
-        backdrop.setStyle("-fx-background-color: rgba(0, 0, 0, 0.40);");
-        backdrop.setPrefSize(1920, 1080);
-        backdrop.setOnMouseClicked(e -> { if (e.getTarget() == backdrop) stage.close(); });
+        VBox modalRoot = new VBox(30);
+        modalRoot.setPadding(new Insets(40));
+        modalRoot.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-width: 1.4; -fx-border-radius: 28; -fx-background-radius: 28;");
+        modalRoot.setPrefWidth(600);
 
-        // INNER CARD
-        VBox innerCard = new VBox(24);
-        innerCard.setMinWidth(688); innerCard.setMaxWidth(688); innerCard.setPrefWidth(688);
-        innerCard.setStyle("-fx-background-color: white; -fx-background-radius: 34.78px; -fx-padding: 55px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);");
-        innerCard.setAlignment(Pos.TOP_LEFT);
-
-        // HEADER
+        // HEADER WITH CLOSE BUTTON
+        HBox headerRow = new HBox(20);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
         Label headerLabel = new Label("Target Self-Care");
-        headerLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
+        headerLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 24));
         headerLabel.setTextFill(Color.web("#292929"));
-        headerLabel.setStyle("-fx-line-spacing: 38.26px; -fx-letter-spacing: 0.30px;");
 
-        // DATE ROW
-        VBox dateContainer = new VBox();
-        dateContainer.setPadding(new Insets(20, 0, 20, 0));
-        HBox dateRow = new HBox();
-        dateRow.setAlignment(Pos.CENTER_LEFT);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeButton = new Button("✕");
+        closeButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #292929; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 5px 10px;");
+        closeButton.setOnAction(e -> stage.close());
+
+        headerRow.getChildren().addAll(headerLabel, spacer, closeButton);
+
+        // DATE SECTION
+        VBox dateContainer = new VBox(10);
         Label dateLabel = new Label("Tanggal");
-        dateLabel.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
-        dateLabel.setTextFill(Color.BLACK);
-        Region dateSpacer = new Region(); HBox.setHgrow(dateSpacer, Priority.ALWAYS);
+        dateLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
+        dateLabel.setTextFill(Color.web("#292929"));
+
+        HBox dateRow = new HBox(10);
+        dateRow.setAlignment(Pos.CENTER_LEFT);
         
-        Label dateValue = new Label(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
-        dateValue.setFont(Font.font("Outfit", 20));
+        Label dateValue = new Label(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))));
+        dateValue.setFont(Font.font("Outfit", FontWeight.NORMAL, 14));
+        dateValue.setTextFill(Color.web("#434343"));
         
         ImageView calendarIcon = new ImageView(new Image("file:img/icons/calendar.png"));
-        calendarIcon.setFitWidth(30); calendarIcon.setFitHeight(30); calendarIcon.setPreserveRatio(true);
-        
-        dateRow.getChildren().addAll(dateLabel, dateSpacer, dateValue, calendarIcon);
+        calendarIcon.setFitWidth(18);
+        calendarIcon.setFitHeight(18);
+        calendarIcon.setPreserveRatio(true);
+        calendarIcon.setStyle("-fx-cursor: hand;");
+
+        Region dateRowSpacer = new Region();
+        HBox.setHgrow(dateRowSpacer, Priority.ALWAYS);
+
+        dateRow.getChildren().addAll(dateValue, dateRowSpacer, calendarIcon);
+        dateRow.setStyle("-fx-cursor: hand;");
         
         if (!isEditMode) {
-            dateRow.setStyle("-fx-cursor: hand;");
             dateRow.setOnMouseClicked(e -> {
                 DatePicker dp = new DatePicker(selectedDate);
                 final Callback<DatePicker, DateCell> dayCellFactory = d -> new DateCell() {
-                    @Override public void updateItem(LocalDate item, boolean empty) {
+                    @Override
+                    public void updateItem(LocalDate item, boolean empty) {
                         super.updateItem(item, empty);
-                        if (item.isBefore(LocalDate.now())) { setDisable(true); setStyle("-fx-background-color: #eeeeee;"); }
+                        if (item.isBefore(LocalDate.now())) {
+                            setDisable(true);
+                            setStyle("-fx-background-color: #eeeeee;");
+                        }
                     }
                 };
-                dp.setDayCellFactory(dayCellFactory); dp.show();
+                dp.setDayCellFactory(dayCellFactory);
+                dp.show();
                 dp.setOnAction(ev -> {
                     selectedDate = dp.getValue();
-                    dateValue.setText(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
+                    dateValue.setText(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))));
                     currentGoals = new ArrayList<>(goalService.getGoalsForDate(selectedDate));
                     renderGoalList();
                 });
             });
-        } else { dateValue.setTextFill(Color.web("#767676")); }
-        dateContainer.getChildren().add(dateRow);
+        } else {
+            dateValue.setTextFill(Color.web("#767676"));
+        }
+        dateContainer.getChildren().addAll(dateLabel, dateRow);
 
-        // TARGET LIST ROW
+        // TARGET LIST SECTION
         VBox listSection = new VBox(10);
-        listSection.setPadding(new Insets(20, 0, 20, 0));
         Label listLabel = new Label("Daftar Target");
-        listLabel.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
-        listLabel.setTextFill(Color.BLACK);
-        
-        targetListContainer = new VBox(10);
+        listLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
+        listLabel.setTextFill(Color.web("#292929"));
+
+        targetListContainer = new VBox(8);
         renderGoalList();
+
+        HBox addRow = new HBox(8);
+        addRow.setAlignment(Pos.CENTER_LEFT);
+        TextField inputField = new TextField();
+        inputField.setPromptText("Tambah target baru...");
+        inputField.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8px 12px; -fx-border-color: #D6D6D6; -fx-border-radius: 8; -fx-border-width: 1; -fx-font-size: 12px;");
+        HBox.setHgrow(inputField, Priority.ALWAYS);
         
-        HBox addRow = new HBox(10); addRow.setAlignment(Pos.CENTER_LEFT);
-        TextField inputField = new TextField(); inputField.setPromptText("Tambah target baru..."); HBox.setHgrow(inputField, Priority.ALWAYS);
-        Button btnAdd = new Button("+"); btnAdd.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 5px; -fx-cursor: hand;");
+        Button btnAdd = new Button("+");
+        btnAdd.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 8; -fx-padding: 8px 12px; -fx-cursor: hand; -fx-text-fill: #74400F; -fx-font-size: 14px; -fx-font-weight: bold;");
         btnAdd.setOnAction(e -> {
             if (!inputField.getText().trim().isEmpty()) {
                 currentGoals.add(new SelfCareGoal(null, inputField.getText().trim(), false, selectedDate, user.getId()));
-                inputField.clear(); renderGoalList();
+                inputField.clear();
+                renderGoalList();
             }
         });
         addRow.getChildren().addAll(inputField, btnAdd);
         listSection.getChildren().addAll(listLabel, targetListContainer, addRow);
 
-        // BUTTONS ROW
-        HBox buttonRow = new HBox(10); buttonRow.setAlignment(Pos.CENTER_RIGHT);
-        Button btnCancel = new Button("Cancel");
-        btnCancel.setPrefWidth(120);
-        btnCancel.setStyle("-fx-background-color: white; -fx-border-color: #74400F; -fx-border-width: 1px; -fx-border-radius: 12.50px; -fx-padding: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 24px; -fx-cursor: hand;");
+        // ACTION BUTTONS ROW
+        HBox buttonRow = new HBox(12);
+        buttonRow.setAlignment(Pos.CENTER);
+
+        Button btnCancel = new Button("Batal");
+        btnCancel.setPrefWidth(130);
+        btnCancel.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-background-radius: 12.5px; -fx-padding: 12px 24px; -fx-cursor: hand; -fx-border-color: #D6D6D6; -fx-border-width: 1px; -fx-border-radius: 12.5px;");
         btnCancel.setOnAction(e -> stage.close());
 
         Button btnSave = new Button("Simpan");
-        btnSave.setPrefWidth(120);
-        btnSave.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 12.50px; -fx-padding: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 24px; -fx-cursor: hand;");
+        btnSave.setPrefWidth(130);
+        btnSave.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-background-radius: 12.5px; -fx-padding: 12px 24px; -fx-cursor: hand;");
         btnSave.setOnAction(e -> {
             goalService.saveGoalsForDate(selectedDate, currentGoals);
             if (onSave != null) onSave.run();
@@ -151,29 +172,47 @@ public class GoalModal {
         });
 
         buttonRow.getChildren().addAll(btnCancel, btnSave);
-        innerCard.getChildren().addAll(headerLabel, dateContainer, listSection, buttonRow);
-        backdrop.getChildren().add(innerCard); StackPane.setAlignment(innerCard, Pos.CENTER);
+        modalRoot.getChildren().addAll(headerRow, dateContainer, listSection, buttonRow);
 
-        Scene scene = new Scene(backdrop); scene.setFill(Color.TRANSPARENT);
-        stage.setScene(scene); stage.centerOnScreen();
+        Scene scene = new Scene(modalRoot);
+        stage.setScene(scene);
+        stage.centerOnScreen();
     }
 
     private void renderGoalList() {
         targetListContainer.getChildren().clear();
         if (currentGoals.isEmpty()) {
             Label placeholder = new Label("Tidak ada daftar target");
-            placeholder.setFont(Font.font("Arimo Hebrew Subset", FontWeight.NORMAL, FontPosture.ITALIC, 20));
-            placeholder.setTextFill(Color.web("rgba(0,0,0,0.20)"));
+            placeholder.setFont(Font.font("Outfit", FontWeight.NORMAL, 13));
+            placeholder.setTextFill(Color.web("rgba(0,0,0,0.30)"));
             targetListContainer.getChildren().add(placeholder);
         } else {
             for (SelfCareGoal g : currentGoals) {
-                HBox item = new HBox(10); item.setAlignment(Pos.CENTER_LEFT);
-                Label lbl = new Label(g.getTitle()); lbl.setFont(Font.font("Outfit", 18));
-                Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
+                HBox item = new HBox(10);
+                item.setAlignment(Pos.CENTER_LEFT);
+                item.setStyle("-fx-padding: 8px; -fx-background-color: #FAE7FF; -fx-background-radius: 8; -fx-border-color: #E8D5F2; -fx-border-width: 1; -fx-border-radius: 8;");
+                
+                Label lbl = new Label(g.getTitle());
+                lbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 13));
+                lbl.setTextFill(Color.web("#434343"));
+                lbl.setWrapText(true);
+                lbl.setMaxWidth(450);
+                
+                Region s = new Region();
+                HBox.setHgrow(s, Priority.ALWAYS);
+                
                 ImageView deleteIcon = new ImageView(new Image("file:img/icons/warning.png"));
-                deleteIcon.setFitWidth(20); deleteIcon.setFitHeight(20); deleteIcon.setPreserveRatio(true); deleteIcon.setStyle("-fx-cursor: hand;");
-                deleteIcon.setOnMouseClicked(e -> { currentGoals.remove(g); renderGoalList(); });
-                item.getChildren().addAll(lbl, s, deleteIcon); targetListContainer.getChildren().add(item);
+                deleteIcon.setFitWidth(16);
+                deleteIcon.setFitHeight(16);
+                deleteIcon.setPreserveRatio(true);
+                deleteIcon.setStyle("-fx-cursor: hand;");
+                deleteIcon.setOnMouseClicked(e -> {
+                    currentGoals.remove(g);
+                    renderGoalList();
+                });
+                
+                item.getChildren().addAll(lbl, s, deleteIcon);
+                targetListContainer.getChildren().add(item);
             }
         }
     }
