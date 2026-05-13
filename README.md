@@ -10,45 +10,88 @@
 - **Visualisasi Analytics:** Lihat grafik perkembangan emosi dan aktivitas Anda dari waktu ke waktu.
 - **Manajemen Profil:** Personalisasi akun Anda dengan foto profil dan detail pengguna.
 
-## 📂 Struktur Folder
+## 📂 Struktur Proyek & Arsitektur
 
+### Struktur Folder Mendetail
 ```text
-IF2050-2026-K02-G02-JuKi/
-├── data/                       # Database SQLite
-│   └── juki.db                 # File database utama
-├── doc/                        # Dokumentasi teknis proyek
-├── img/                        # Aset gambar & UI
-│   ├── dashboard/              # Ikon & grafis dashboard
-│   ├── emojis/                 # Aset emoji
-│   ├── emotions/               # Ikon mood (angry, joyful, dll)
-│   ├── icons/                  # Ikon navigasi (panah, kalender, dll)
-│   └── selfcare/               # Ikon status target self-care
-├── src/
-│   └── main/java/com/juki/
-│       ├── controller/         # Logika kontrol (Bridge antara UI & Data)
-│       │   ├── AnalyticsController.java
-│       │   ├── EntryController.java
-│       │   ├── GoalController.java
-│       │   ├── MoodController.java
-│       │   └── RegistrationFormController.java
-│       ├── db/                 # Konfigurasi Database
-│       │   └── DatabaseHelper.java
-│       ├── model/              # Struktur data (POJO)
-│       │   ├── DailyMood.java
-│       │   ├── JournalEntry.java
-│       │   ├── SelfCareGoal.java
-│       │   └── User.java
-│       ├── view/               # Antarmuka Pengguna (JavaFX)
-│       │   ├── DashboardView.java
-│       │   ├── CalendarView.java
-│       │   ├── EntryFormView.java
-│       │   ├── ProfileView.java
-│       │   └── RegistrationFormView.java
-│       └── MainApp.java        # Entry point aplikasi
-├── tests/                      # Unit testing
-├── pom.xml                     # Manajemen dependensi Maven
-└── README.md                   # Dokumentasi proyek
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\
+├───data\                           # Penyimpanan persisten
+│   ├───juki.db                     # Database utama SQLite
+│   └───img\                        # Foto yang diunggah pengguna
+├───img\                            # Aset UI statis
+│   ├───dashboard\                  # Ikon & grafis dashboard
+│   ├───emojis\                     # Ikon emoji
+│   ├───emotions\                   # Ikon kategori emosi
+│   ├───icons\                      # Ikon navigasi & tombol
+│   └───selfcare\                   # Ikon status self-care
+├───src\
+│   └───main\
+│       ├───java\
+│       │   └───com\juki\
+│       │       ├───MainApp.java            # Titik masuk utama aplikasi
+│       │       ├───controller\            # Logika kontrol aplikasi
+│       │       │   ├───AnalyticsController.java      # Logika visualisasi data
+│       │       │   ├───EntryController.java          # Manajemen entri jurnal
+│       │       │   ├───GoalController.java           # Logika target self-care
+│       │       │   ├───MoodController.java           # Pelacakan mood harian
+│       │       │   ├───ProfileManager.java           # Manajemen profil pengguna
+│       │       │   ├───RegistrationFormController.java # Logika login/regis
+│       │       │   └───SearchController.java         # Logika pencarian jurnal
+│       │       ├───db\                    # Akses database
+│       │       │   └───DatabaseHelper.java           # Operasi CRUD & skema
+│       │       ├───model\                 # Model data (POJO)
+│       │       │   ├───DailyMood.java                # Entity mood harian
+│       │       │   ├───JournalEntry.java             # Entity entri jurnal
+│       │       │   ├───Photo.java                    # Entity foto lampiran
+│       │       │   ├───SearchFilter.java             # Filter kriteria pencarian
+│       │       │   ├───SelfCareGoal.java             # Entity target harian
+│       │       │   └───User.java                     # Entity data pengguna
+│       │       ├───service\               # Layanan bisnis
+│       │       │   └───GoalService.java              # Layanan logika target
+│       │       └───view\                  # Komponen antarmuka pengguna
+│       │           ├───CalendarView.java             # Tampilan kalender
+│       │           ├───DashboardView.java            # Tampilan utama
+│       │           ├───EntryDetailView.java          # Detail isi jurnal
+│       │           ├───EntryFormView.java            # Form tambah/edit jurnal
+│       │           ├───EntryListView.java            # Daftar entri jurnal
+│       │           ├───EntryManagerView.java         # Kontainer manajemen jurnal
+│       │           ├───GoalModal.java                # Modal tambah target
+│       │           ├───ProfileView.java              # Tampilan edit profil
+│       │           ├───RegistrationFormView.java     # Tampilan login/regis
+│       │           ├───SearchView.java               # Tampilan pencarian
+│       │           └───VisualizerView.java           # Tampilan grafis analitik
+│       └───resources\
+│           └───css\                       # Styling aplikasi
+│               └───style.css              # File CSS utama
+├───pom.xml                         # Konfigurasi dependensi Maven
+└───README.md                       # Dokumentasi utama proyek
 ```
+
+### Arsitektur (MVC)
+JuKi mengikuti pola arsitektur **Model-View-Controller (MVC)** untuk memastikan pemisahan tanggung jawab yang jelas, sehingga kode lebih mudah dikelola dan dikembangkan.
+
+1.  **Model (`com.juki.model`)**: Mewakili struktur data aplikasi. Berupa objek Java (POJO) yang memetakan tabel database, seperti `User`, `JournalEntry`, `DailyMood`, dan `SelfCareGoal`.
+2.  **View (`com.juki.view`)**: Menangani lapisan presentasi menggunakan **JavaFX**. Setiap kelas view bertanggung jawab untuk membangun bagian tertentu dari antarmuka pengguna, seperti `DashboardView` dan `CalendarView`.
+3.  **Controller (`com.juki.controller`)**: Bertindak sebagai perantara antara Model dan View. Menangani input pengguna dan memperbarui UI, misalnya `EntryController` dan `MoodController`.
+
+### Tanggung Jawab Folder
+
+| Direktori | Tanggung Jawab |
+| :--- | :--- |
+| `controller/` | Logika untuk menangani interaksi pengguna dan menjembatani model dan view. |
+| `db/` | Berisi `DatabaseHelper` untuk mengelola operasi SQLite dan inisialisasi skema. |
+| `model/` | Mendefinisikan entitas data yang digunakan di seluruh aplikasi. |
+| `view/` | Layout UI, komponen kustom, dan manajemen scene menggunakan JavaFX. |
+| `service/` | Lapisan logika bisnis tambahan untuk operasi kompleks seperti pelacakan target. |
+| `resources/` | Konfigurasi eksternal dan file CSS untuk gaya aplikasi global. |
+| `data/` | Menyimpan database SQLite lokal dan media yang diunggah pengguna. |
+| `img/` | Berisi semua aset gambar statis yang digunakan dalam UI aplikasi. |
+
+### Komponen Penting
+
+*   **`MainApp.java`**: Kelas inti aplikasi yang menginisialisasi database dan mengelola stage serta transisi scene utama.
+*   **`DatabaseHelper.java`**: Kelas terpusat untuk semua interaksi database, memastikan koneksi yang aman dan menyediakan metode CRUD.
+*   **`style.css`**: Stylesheet utama yang menentukan estetika visual aplikasi, termasuk warna, font (Outfit), dan styling komponen.
 
 ## 🛠️ Prasyarat
 
