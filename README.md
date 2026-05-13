@@ -10,54 +10,15 @@
 - **Visualisasi Analytics:** Lihat grafik perkembangan emosi dan aktivitas Anda dari waktu ke waktu.
 - **Manajemen Profil:** Personalisasi akun Anda dengan foto profil dan detail pengguna.
 
-## 📂 Struktur Folder
-
-```text
-IF2050-2026-K02-G02-JuKi/
-├── data/                       # Database SQLite
-│   └── juki.db                 # File database utama
-├── doc/                        # Dokumentasi teknis proyek
-├── img/                        # Aset gambar & UI
-│   ├── dashboard/              # Ikon & grafis dashboard
-│   ├── emojis/                 # Aset emoji
-│   ├── emotions/               # Ikon mood (angry, joyful, dll)
-│   ├── icons/                  # Ikon navigasi (panah, kalender, dll)
-│   └── selfcare/               # Ikon status target self-care
-├── src/
-│   └── main/java/com/juki/
-│       ├── controller/         # Logika kontrol (Bridge antara UI & Data)
-│       │   ├── AnalyticsController.java
-│       │   ├── EntryController.java
-│       │   ├── GoalController.java
-│       │   ├── MoodController.java
-│       │   └── RegistrationFormController.java
-│       ├── db/                 # Konfigurasi Database
-│       │   └── DatabaseHelper.java
-│       ├── model/              # Struktur data (POJO)
-│       │   ├── DailyMood.java
-│       │   ├── JournalEntry.java
-│       │   ├── SelfCareGoal.java
-│       │   └── User.java
-│       ├── view/               # Antarmuka Pengguna (JavaFX)
-│       │   ├── DashboardView.java
-│       │   ├── CalendarView.java
-│       │   ├── EntryFormView.java
-│       │   ├── ProfileView.java
-│       │   └── RegistrationFormView.java
-│       └── MainApp.java        # Entry point aplikasi
-├── tests/                      # Unit testing
-├── pom.xml                     # Manajemen dependensi Maven
-└── README.md                   # Dokumentasi proyek
-```
-
 ## 🛠️ Prasyarat
 
 Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
 
 - **Java Development Kit (JDK) 21** atau versi yang lebih baru.
 - **Apache Maven** untuk manajemen proyek.
+- **SQLite** (biasanya sudah termasuk dalam library JDBC).
 
-## ⚙️ Cara Menjalankan Aplikasi
+## ⚙️ Instalasi dan Cara Menjalankan
 
 1. **Clone Repositori**
    ```bash
@@ -76,15 +37,69 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
    mvn javafx:run
    ```
 
-## 👥 Anggota Kelompok (G02)
+## 🧩 Modul yang Diimplementasikan
 
-| No | Nama | NIM |
-|:---:|:---|:---:|
-| 1 | Nadine Octavia | 18224012 |
-| 2 | Danya Soe | 18224024 |
-| 3 | Anisa Aulia Alhaqi | 18224080 |
-| 4 | Zahra Nur Azizah | 18224092 |
-| 5 | Riko Satriya Giovanni | 18224108 |
+| Nama Modul | Deskripsi |
+|:---|:---|
+| **Autentikasi & Registrasi** | Mengelola proses pendaftaran akun baru dan login pengguna. |
+| **Manajemen Jurnal** | Memungkinkan pengguna membuat, membaca, memperbarui, dan menghapus (CRUD) entri jurnal. |
+| **Target Self-Care** | Sistem untuk menetapkan dan melacak status penyelesaian target harian. |
+| **Dashboard & Kalender** | Tampilan utama yang merangkum aktivitas harian dan navigasi berbasis tanggal. |
+| **Profil Pengguna** | Mengelola informasi pribadi pengguna, termasuk foto profil. |
+| **Analisis & Mood** | Visualisasi tren emosi harian dan statistik pencapaian target. |
+| **Pencarian & Filter** | Mempermudah pencarian entri jurnal berdasarkan kriteria tertentu. |
+
+## 🗄️ Basis Data
+
+Aplikasi menggunakan SQLite dengan skema tabel sebagai berikut:
+
+- **User**: Menyimpan data akun pengguna.
+  - `id` (INTEGER, PK): ID unik pengguna.
+  - `full_name` (TEXT): Nama lengkap.
+  - `username` (TEXT, UNIQUE): Username untuk login.
+  - `password` (TEXT): Password akun.
+  - `profile_photo_path` (TEXT): Path file foto profil.
+
+- **JournalEntry**: Menyimpan entri jurnal harian.
+  - `id` (INTEGER, PK): ID unik entri.
+  - `category` (TEXT): Kategori jurnal.
+  - `title` (TEXT): Judul entri.
+  - `description` (TEXT): Isi jurnal.
+  - `trigger` (TEXT): Pemicu emosi.
+  - `target` (TEXT): Target terkait.
+  - `date` (TEXT): Tanggal entri.
+  - `time` (TEXT): Waktu entri.
+  - `photo_id` (TEXT): Referensi ke foto.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik entri.
+
+- **SelfCareGoal**: Menyimpan target perawatan diri.
+  - `id` (INTEGER, PK): ID unik target.
+  - `title` (TEXT): Nama target.
+  - `is_completed` (INTEGER): Status penyelesaian (0/1).
+  - `date` (TEXT): Tanggal target.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik target.
+
+- **DailyMood**: Menyimpan catatan mood harian.
+  - `id` (INTEGER, PK): ID unik mood.
+  - `mood_name` (TEXT): Nama emosi.
+  - `date` (TEXT): Tanggal pencatatan.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik data.
+
+- **Photo**: Menyimpan referensi file gambar.
+  - `id` (INTEGER, PK): ID unik foto.
+  - `filePath` (TEXT): Path file gambar di penyimpanan lokal.
+
+## 👥 Pembagian Tugas Implementasi (G02)
+
+Setiap anggota bertanggung jawab minimal atas satu modul yang mencakup antarmuka (View) dan logika (Controller/Service).
+
+| No | Nama | NIM | Modul | View | Controller / Helper |
+|:---:|:---|:---:|:---|:---|:---|
+| 1 | Nadine Octavia | 18224012 | **Target Self-Care & Kalender** | `CalendarView`, `GoalModal` | `GoalController`, `GoalService` |
+| 2 | Danya Soe | 18224024 | **Manajemen Jurnal (CRUD) & Basis Data** | `EntryFormView`, `EntryDetailView` | `EntryController`, `DatabaseHelper` |
+| 3 | Anisa Aulia Alhaqi | 18224080 | **Manajemen Profil** | `ProfileView`, `EntryManagerView` | `ProfileManager` |
+| 4 | Zahra Nur Azizah | 18224092 | **Autentikasi & Pencarian** | `RegistrationFormView`, `EntryListView`, `SearchView` | `RegistrationFormController`, `SearchController` |
+| 5 | Riko Satriya Giovanni | 18224108 | **Dashboard & Analisis Mood** | `DashboardView`, `VisualizerView` | `AnalyticsController`, `MoodController` |
 
 ---
 
