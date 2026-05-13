@@ -18,6 +18,7 @@ import com.juki.view.ProfileView;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -58,10 +59,14 @@ public class MainApp extends Application {
             showMainDashboard(primaryStage, user);
         });
 
-        Scene scene = new Scene(loginView.getView(), 1600, 900);
-        primaryStage.setTitle("JuKi - Login");
+        Scene scene = new Scene(loginView.getView());
         primaryStage.setScene(scene);
+        primaryStage.setTitle("JuKi - Login");
         primaryStage.setResizable(true);
+        // Ensure window is maximized at login
+        Platform.runLater(() -> {
+            primaryStage.setMaximized(true);
+        });
         primaryStage.show();
     }
 
@@ -362,13 +367,15 @@ public class MainApp extends Application {
         DashboardView dashboardView = new DashboardView();
         root.setCenter(dashboardView.getDashboardView(user, root));
 
-        Scene scene = new Scene(root, 1600, 900);
+        Scene scene = new Scene(root);
         scene.getStylesheets().add("data:text/css,.chart-series-area-fill { -fx-fill: rgba(255, 105, 180, 0.4); } .chart-series-area-line { -fx-stroke: #FF69B4; -fx-stroke-width: 3px; }");
-        primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        primaryStage.setTitle("JuKi - App");
         primaryStage.setResizable(true);
-        primaryStage.show();
+        // Ensure window stays maximized after scene change
+        Platform.runLater(() -> {
+            primaryStage.setMaximized(true);
+        });
     }
 
     private void showEntryList(BorderPane root, User user) {
