@@ -61,9 +61,10 @@ public class GoalModal {
         backdrop.setPrefSize(1920, 1080);
         backdrop.setOnMouseClicked(e -> { if (e.getTarget() == backdrop) stage.close(); });
 
-        // INNER CARD
+        // INNER CARD - Dynamic Height
         VBox innerCard = new VBox(24);
         innerCard.setMinWidth(688); innerCard.setMaxWidth(688); innerCard.setPrefWidth(688);
+        innerCard.setMaxHeight(Region.USE_PREF_SIZE);
         innerCard.setStyle("-fx-background-color: white; -fx-background-radius: 34.78px; -fx-padding: 55px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);");
         innerCard.setAlignment(Pos.TOP_LEFT);
 
@@ -71,13 +72,11 @@ public class GoalModal {
         Label headerLabel = new Label("Target Self-Care");
         headerLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
         headerLabel.setTextFill(Color.web("#292929"));
-        headerLabel.setStyle("-fx-line-spacing: 38.26px; -fx-letter-spacing: 0.30px;");
 
         // DATE ROW
-        VBox dateContainer = new VBox();
-        dateContainer.setPadding(new Insets(20, 0, 20, 0));
-        HBox dateRow = new HBox();
+        HBox dateRow = new HBox(16);
         dateRow.setAlignment(Pos.CENTER_LEFT);
+        dateRow.setPadding(new Insets(20, 0, 20, 0));
         Label dateLabel = new Label("Tanggal");
         dateLabel.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
         dateLabel.setTextFill(Color.BLACK);
@@ -86,45 +85,51 @@ public class GoalModal {
         Label dateValue = new Label(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
         dateValue.setFont(Font.font("Outfit", 20));
         
+        DatePicker datePicker = new DatePicker(selectedDate);
+        datePicker.setManaged(false); datePicker.setVisible(false);
+        datePicker.setDayCellFactory(picker -> new DateCell() {
+            @Override public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item.isBefore(LocalDate.now())) { setDisable(true); setStyle("-fx-background-color: #eeeeee;"); }
+            }
+        });
+        
         ImageView calendarIcon = new ImageView(new Image("file:img/icons/calendar.png"));
         calendarIcon.setFitWidth(30); calendarIcon.setFitHeight(30); calendarIcon.setPreserveRatio(true);
-        
-        dateRow.getChildren().addAll(dateLabel, dateSpacer, dateValue, calendarIcon);
+        calendarIcon.setStyle("-fx-cursor: hand;");
         
         if (!isEditMode) {
-            dateRow.setStyle("-fx-cursor: hand;");
-            dateRow.setOnMouseClicked(e -> {
-                DatePicker dp = new DatePicker(selectedDate);
-                final Callback<DatePicker, DateCell> dayCellFactory = d -> new DateCell() {
-                    @Override public void updateItem(LocalDate item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item.isBefore(LocalDate.now())) { setDisable(true); setStyle("-fx-background-color: #eeeeee;"); }
-                    }
-                };
-                dp.setDayCellFactory(dayCellFactory); dp.show();
-                dp.setOnAction(ev -> {
-                    selectedDate = dp.getValue();
-                    dateValue.setText(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
-                    currentGoals = new ArrayList<>(goalService.getGoalsForDate(selectedDate));
-                    renderGoalList();
-                });
+            calendarIcon.setOnMouseClicked(e -> datePicker.show());
+            datePicker.setOnAction(ev -> {
+                selectedDate = datePicker.getValue();
+                dateValue.setText(selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.US)));
+                currentGoals = new ArrayList<>(goalService.getGoalsForDate(selectedDate));
+                renderGoalList();
             });
-        } else { dateValue.setTextFill(Color.web("#767676")); }
-        dateContainer.getChildren().add(dateRow);
+        } else { dateValue.setTextFill(Color.web("#767676")); calendarIcon.setOpacity(0.5); }
 
-        // TARGET LIST ROW
+        dateRow.getChildren().addAll(dateLabel, dateSpacer, dateValue, calendarIcon, datePicker);
+
+        // TARGET LIST SECTION
         VBox listSection = new VBox(10);
         listSection.setPadding(new Insets(20, 0, 20, 0));
         Label listLabel = new Label("Daftar Target");
         listLabel.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
-        listLabel.setTextFill(Color.BLACK);
         
-        targetListContainer = new VBox(10);
+        targetListContainer = new VBox(15);
         renderGoalList();
+
+        ScrollPane scrollPane = new ScrollPane(targetListContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setMaxHeight(300);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         
-        HBox addRow = new HBox(10); addRow.setAlignment(Pos.CENTER_LEFT);
-        TextField inputField = new TextField(); inputField.setPromptText("Tambah target baru..."); HBox.setHgrow(inputField, Priority.ALWAYS);
-        Button btnAdd = new Button("+"); btnAdd.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 5px; -fx-cursor: hand;");
+        HBox addRow = new HBox(12); addRow.setAlignment(Pos.CENTER_LEFT);
+        TextField inputField = new TextField(); inputField.setPromptText("Tambah target baru...");
+        inputField.setStyle("-fx-background-radius: 10px; -fx-padding: 10px;");
+        HBox.setHgrow(inputField, Priority.ALWAYS);
+        Button btnAdd = new Button("+"); btnAdd.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 10px; -fx-padding: 8px 16px; -fx-cursor: hand;");
         btnAdd.setOnAction(e -> {
             if (!inputField.getText().trim().isEmpty()) {
                 currentGoals.add(new SelfCareGoal(null, inputField.getText().trim(), false, selectedDate, user.getId()));
@@ -132,30 +137,26 @@ public class GoalModal {
             }
         });
         addRow.getChildren().addAll(inputField, btnAdd);
-        listSection.getChildren().addAll(listLabel, targetListContainer, addRow);
+        listSection.getChildren().addAll(listLabel, scrollPane, addRow);
 
-        // BUTTONS ROW
-        HBox buttonRow = new HBox(10); buttonRow.setAlignment(Pos.CENTER_RIGHT);
-        Button btnCancel = new Button("Cancel");
-        btnCancel.setPrefWidth(120);
-        btnCancel.setStyle("-fx-background-color: white; -fx-border-color: #74400F; -fx-border-width: 1px; -fx-border-radius: 12.50px; -fx-padding: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 24px; -fx-cursor: hand;");
+        // BUTTONS
+        HBox buttonRow = new HBox(15); buttonRow.setAlignment(Pos.CENTER_RIGHT);
+        Button btnCancel = new Button("Cancel"); btnCancel.setPrefSize(120, 40);
+        btnCancel.setStyle("-fx-background-color: white; -fx-border-color: #74400F; -fx-border-radius: 12.5px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-cursor: hand;");
         btnCancel.setOnAction(e -> stage.close());
-
-        Button btnSave = new Button("Simpan");
-        btnSave.setPrefWidth(120);
-        btnSave.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 12.50px; -fx-padding: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 24px; -fx-cursor: hand;");
+        Button btnSave = new Button("Simpan"); btnSave.setPrefSize(120, 40);
+        btnSave.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 12.5px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-cursor: hand;");
         btnSave.setOnAction(e -> {
             goalService.saveGoalsForDate(selectedDate, currentGoals);
             if (onSave != null) onSave.run();
             stage.close();
         });
-
         buttonRow.getChildren().addAll(btnCancel, btnSave);
-        innerCard.getChildren().addAll(headerLabel, dateContainer, listSection, buttonRow);
-        backdrop.getChildren().add(innerCard); StackPane.setAlignment(innerCard, Pos.CENTER);
 
+        innerCard.getChildren().addAll(headerLabel, dateRow, listSection, buttonRow);
+        backdrop.getChildren().add(innerCard); StackPane.setAlignment(innerCard, Pos.CENTER);
         Scene scene = new Scene(backdrop); scene.setFill(Color.TRANSPARENT);
-        stage.setScene(scene); stage.centerOnScreen();
+        stage.setScene(scene); stage.show(); stage.centerOnScreen();
     }
 
     private void renderGoalList() {
@@ -167,16 +168,14 @@ public class GoalModal {
             targetListContainer.getChildren().add(placeholder);
         } else {
             for (SelfCareGoal g : currentGoals) {
-                HBox item = new HBox(10); item.setAlignment(Pos.CENTER_LEFT);
-                Label lbl = new Label(g.getTitle()); lbl.setFont(Font.font("Outfit", 18));
-                Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
-                ImageView deleteIcon = new ImageView(new Image("file:img/icons/warning.png"));
-                deleteIcon.setFitWidth(20); deleteIcon.setFitHeight(20); deleteIcon.setPreserveRatio(true); deleteIcon.setStyle("-fx-cursor: hand;");
-                deleteIcon.setOnMouseClicked(e -> { currentGoals.remove(g); renderGoalList(); });
-                item.getChildren().addAll(lbl, s, deleteIcon); targetListContainer.getChildren().add(item);
+                HBox item = new HBox(12); item.setAlignment(Pos.CENTER_LEFT); item.setPadding(new Insets(5, 0, 5, 0));
+                Label lbl = new Label(g.getTitle()); lbl.setFont(Font.font("Outfit", 18)); lbl.setWrapText(true); HBox.setHgrow(lbl, Priority.ALWAYS);
+                ImageView del = new ImageView(new Image("file:img/icons/warning.png")); del.setFitWidth(20); del.setPreserveRatio(true); del.setStyle("-fx-cursor: hand;");
+                del.setOnMouseClicked(e -> { currentGoals.remove(g); renderGoalList(); });
+                item.getChildren().addAll(lbl, del); targetListContainer.getChildren().add(item);
             }
         }
     }
 
-    public void show() { stage.show(); }
+    public void show() { if (!stage.isShowing()) stage.show(); }
 }

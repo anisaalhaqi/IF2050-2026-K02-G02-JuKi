@@ -52,16 +52,17 @@ public class DashboardView {
         // Row 1: Greeting
         HBox greetingBox = createGreeting(user);
         
-        // Row 2 Setup
+        // Col 1: Containers
         VBox col1 = new VBox(10); col1.setPrefWidth(689);
-        VBox streakContainer = new VBox();
-        VBox moodGraphContainer = new VBox();
-        col1.getChildren().addAll(streakContainer, moodGraphContainer);
+        VBox streakWidgetContainer = new VBox();
+        VBox moodGraphWidgetContainer = new VBox();
+        col1.getChildren().addAll(streakWidgetContainer, moodGraphWidgetContainer);
 
+        // Row 2 setup
         HBox row2 = new HBox(40); row2.setAlignment(Pos.BOTTOM_LEFT);
         row2.getChildren().addAll(col1, createCalendarWidget(), createMoodSelectorWidget());
 
-        // Row 3 Setup
+        // Row 3 setup
         HBox row3 = new HBox(64); row3.setAlignment(Pos.TOP_LEFT);
         VBox dailyTargetsContainer = new VBox();
         row3.getChildren().addAll(createJournalHistoryWidget(entries), dailyTargetsContainer);
@@ -69,17 +70,17 @@ public class DashboardView {
         content.getChildren().addAll(greetingBox, row2, row3);
 
         // UI Refresh Logic
-        Runnable refreshDynamicUI = () -> {
-            streakContainer.getChildren().setAll(createStreakWidget());
+        Runnable refreshGoalUI = () -> {
+            streakWidgetContainer.getChildren().setAll(createStreakWidget());
             dailyTargetsContainer.getChildren().setAll(createDailyTargetsWidget());
-            moodGraphContainer.getChildren().setAll(createMoodGraphWidget(entries));
+            moodGraphWidgetContainer.getChildren().setAll(createMoodGraphWidget(entries));
         };
 
-        refreshDynamicUI.run();
+        refreshGoalUI.run();
 
         // Listen for data changes SAFELY
         goalService.getGoalsCache().addListener((MapChangeListener<LocalDate, List<SelfCareGoal>>) change -> {
-            Platform.runLater(refreshDynamicUI);
+            Platform.runLater(refreshGoalUI);
         });
 
         ScrollPane scrollPane = new ScrollPane(content);
@@ -117,7 +118,9 @@ public class DashboardView {
 
         VBox targetSelfCare = new VBox(16); targetSelfCare.setAlignment(Pos.CENTER);
         Label targetTitle = new Label("Target Self-care"); targetTitle.setFont(Font.font("Outfit", FontWeight.MEDIUM, 25));
-        HBox daysRow = new HBox(24); String[] days = {"S", "M", "T", "W", "T", "F", "S"};
+        
+        HBox daysRow = new HBox(24);
+        String[] days = {"S", "M", "T", "W", "T", "F", "S"};
         LocalDate today = LocalDate.now();
         for (int i = 6; i >= 0; i--) {
             LocalDate d = today.minusDays(i);
@@ -189,7 +192,7 @@ public class DashboardView {
                     if (day == now.getDayOfMonth()) {
                         Circle bg = new Circle(18, Color.web("#F1B900"));
                         d.setTextFill(Color.WHITE); cell.getChildren().addAll(bg, d);
-                    } else { cell.getChildren().add(d); }
+                    } else { d.setTextFill(Color.web("#434343")); cell.getChildren().add(d); }
                     grid.add(cell, col, row); day++;
                 }
             }
