@@ -3,7 +3,6 @@ com\juki\db\DatabaseHelper.class
 com\juki\model\User.class
 com\juki\view\EntryDetailView.class
 com\juki\controller\GoalController.class
-com\juki\view\GoalModal$1.class
 com\juki\view\RegistrationFormView.class
 com\juki\view\SearchView.class
 com\juki\model\SelfCareGoal.class
