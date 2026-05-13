@@ -104,18 +104,22 @@ public class EntryListView {
         VBox modalRoot = new VBox(24);
         modalRoot.setPadding(new Insets(39.2));
         modalRoot.setStyle("-fx-background-color: white; -fx-background-radius: 34.78px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);");
-        modalRoot.setPrefWidth(620.2);
+        modalRoot.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        modalRoot.setMinWidth(350);
+        modalRoot.setMaxWidth(620);
+        modalRoot.setAlignment(Pos.TOP_LEFT);
+        modalRoot.setFillWidth(true);
         modalRoot.setMaxHeight(Region.USE_PREF_SIZE);
 
         // HEADER: title + X button
         HBox modalHeader = new HBox();
         modalHeader.setAlignment(Pos.CENTER_LEFT);
         Label modalTitle = new Label("Pilih Tanggal");
-        modalTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
+        modalTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 22)); // Reduced from 29.57
         modalTitle.setTextFill(Color.web("#292929"));
         Region titleSpacer = new Region(); HBox.setHgrow(titleSpacer, Priority.ALWAYS);
         Button btnClose = new Button("✕");
-        btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #767676; -fx-font-size: 20px; -fx-cursor: hand;");
+        btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #767676; -fx-font-size: 16px; -fx-cursor: hand;");
         btnClose.setOnAction(e -> modal.close());
         modalHeader.getChildren().addAll(modalTitle, titleSpacer, btnClose);
 
@@ -123,17 +127,17 @@ public class EntryListView {
 
         Label monthLabel = new Label();
         monthLabel.setTextFill(Color.web("#292929"));
-        monthLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 35));
+        monthLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 26)); // Reduced from 35
 
         // Navigation Arrows
         ImageView prevArrow = new ImageView(new Image("file:img/icons/arrow-left.png"));
-        prevArrow.setFitWidth(44.8);
-        prevArrow.setFitHeight(44.8);
+        prevArrow.setFitWidth(30); // Reduced from 44.8
+        prevArrow.setFitHeight(30);
         prevArrow.setStyle("-fx-cursor: hand;");
 
         ImageView nextArrow = new ImageView(new Image("file:img/icons/arrow-left.png"));
-        nextArrow.setFitWidth(44.8);
-        nextArrow.setFitHeight(44.8);
+        nextArrow.setFitWidth(30);
+        nextArrow.setFitHeight(30);
         nextArrow.setRotate(180);
         nextArrow.setStyle("-fx-cursor: hand;");
 
@@ -142,18 +146,18 @@ public class EntryListView {
 
         // Weekdays Header
         String[] dayNames = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
-        HBox weekdayRow = new HBox(44.8);
-        weekdayRow.setAlignment(Pos.CENTER_LEFT);
+        HBox weekdayRow = new HBox(30); // Reduced from 44.8
+        weekdayRow.setAlignment(Pos.CENTER);
         for (String dayName : dayNames) {
             Label dayLabel = new Label(dayName);
             dayLabel.setTextFill(Color.web("#767676"));
-            dayLabel.setFont(Font.font("Montserrat", FontWeight.MEDIUM, 22.4));
-            dayLabel.setPrefWidth(44.8);
+            dayLabel.setFont(Font.font("Montserrat", FontWeight.MEDIUM, 16)); // Reduced from 22.4
+            dayLabel.setPrefWidth(30);
             dayLabel.setAlignment(Pos.CENTER);
             weekdayRow.getChildren().add(dayLabel);
         }
 
-        VBox dateGrid = new VBox(56);
+        VBox dateGrid = new VBox(20); // Reduced spacing
         Runnable[] rebuildCalendar = new Runnable[1];
         rebuildCalendar[0] = () -> {
             monthLabel.setText(monthShown[0].format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH)));
@@ -165,15 +169,17 @@ public class EntryListView {
             int day = 1;
 
             for (int week = 0; week < 6; week++) {
-                HBox weekRow = new HBox(44.8);
-                weekRow.setAlignment(Pos.CENTER_LEFT);
+                HBox weekRow = new HBox(10);
+                weekRow.setAlignment(Pos.CENTER);
                 for (int weekday = 0; weekday < 7; weekday++) {
                     StackPane dateCellPane = new StackPane();
-                    dateCellPane.setPrefSize(44.8, 33.6);
+                    dateCellPane.setPrefSize(40, 40); // Reduced size
+                    dateCellPane.setAlignment(Pos.CENTER);
+                    
 
                     Label dayCell = new Label();
                     dayCell.setTextFill(Color.web("#434343"));
-                    dayCell.setFont(Font.font("Montserrat", FontWeight.NORMAL, 28));
+                    dayCell.setFont(Font.font("Montserrat", FontWeight.NORMAL, 16)); // Reduced from 20
                     dayCell.setStyle("-fx-cursor: hand;");
 
                     if (!(week == 0 && weekday < startOffset || day > daysInMonth)) {
