@@ -10,97 +10,15 @@
 - **Visualisasi Analytics:** Lihat grafik perkembangan emosi dan aktivitas Anda dari waktu ke waktu.
 - **Manajemen Profil:** Personalisasi akun Anda dengan foto profil dan detail pengguna.
 
-## 📂 Struktur Proyek & Arsitektur
-
-### Struktur Folder Mendetail
-```text
-C:\Users\hp\IF2050-2026-K02-G02-JuKi\
-├───data\                           # Penyimpanan persisten
-│   ├───juki.db                     # Database utama SQLite
-│   └───img\                        # Foto yang diunggah pengguna
-├───img\                            # Aset UI statis
-│   ├───dashboard\                  # Ikon & grafis dashboard
-│   ├───emojis\                     # Ikon emoji
-│   ├───emotions\                   # Ikon kategori emosi
-│   ├───icons\                      # Ikon navigasi & tombol
-│   └───selfcare\                   # Ikon status self-care
-├───src\
-│   └───main\
-│       ├───java\
-│       │   └───com\juki\
-│       │       ├───MainApp.java            # Titik masuk utama aplikasi
-│       │       ├───controller\            # Logika kontrol aplikasi
-│       │       │   ├───AnalyticsController.java      # Logika visualisasi data
-│       │       │   ├───EntryController.java          # Manajemen entri jurnal
-│       │       │   ├───GoalController.java           # Logika target self-care
-│       │       │   ├───MoodController.java           # Pelacakan mood harian
-│       │       │   ├───ProfileManager.java           # Manajemen profil pengguna
-│       │       │   ├───RegistrationFormController.java # Logika login/regis
-│       │       │   └───SearchController.java         # Logika pencarian jurnal
-│       │       ├───db\                    # Akses database
-│       │       │   └───DatabaseHelper.java           # Operasi CRUD & skema
-│       │       ├───model\                 # Model data (POJO)
-│       │       │   ├───DailyMood.java                # Entity mood harian
-│       │       │   ├───JournalEntry.java             # Entity entri jurnal
-│       │       │   ├───Photo.java                    # Entity foto lampiran
-│       │       │   ├───SearchFilter.java             # Filter kriteria pencarian
-│       │       │   ├───SelfCareGoal.java             # Entity target harian
-│       │       │   └───User.java                     # Entity data pengguna
-│       │       ├───service\               # Layanan bisnis
-│       │       │   └───GoalService.java              # Layanan logika target
-│       │       └───view\                  # Komponen antarmuka pengguna
-│       │           ├───CalendarView.java             # Tampilan kalender
-│       │           ├───DashboardView.java            # Tampilan utama
-│       │           ├───EntryDetailView.java          # Detail isi jurnal
-│       │           ├───EntryFormView.java            # Form tambah/edit jurnal
-│       │           ├───EntryListView.java            # Daftar entri jurnal
-│       │           ├───EntryManagerView.java         # Kontainer manajemen jurnal
-│       │           ├───GoalModal.java                # Modal tambah target
-│       │           ├───ProfileView.java              # Tampilan edit profil
-│       │           ├───RegistrationFormView.java     # Tampilan login/regis
-│       │           ├───SearchView.java               # Tampilan pencarian
-│       │           └───VisualizerView.java           # Tampilan grafis analitik
-│       └───resources\
-│           └───css\                       # Styling aplikasi
-│               └───style.css              # File CSS utama
-├───pom.xml                         # Konfigurasi dependensi Maven
-└───README.md                       # Dokumentasi utama proyek
-```
-
-### Arsitektur (MVC)
-JuKi mengikuti pola arsitektur **Model-View-Controller (MVC)** untuk memastikan pemisahan tanggung jawab yang jelas, sehingga kode lebih mudah dikelola dan dikembangkan.
-
-1.  **Model (`com.juki.model`)**: Mewakili struktur data aplikasi. Berupa objek Java (POJO) yang memetakan tabel database, seperti `User`, `JournalEntry`, `DailyMood`, dan `SelfCareGoal`.
-2.  **View (`com.juki.view`)**: Menangani lapisan presentasi menggunakan **JavaFX**. Setiap kelas view bertanggung jawab untuk membangun bagian tertentu dari antarmuka pengguna, seperti `DashboardView` dan `CalendarView`.
-3.  **Controller (`com.juki.controller`)**: Bertindak sebagai perantara antara Model dan View. Menangani input pengguna dan memperbarui UI, misalnya `EntryController` dan `MoodController`.
-
-### Tanggung Jawab Folder
-
-| Direktori | Tanggung Jawab |
-| :--- | :--- |
-| `controller/` | Logika untuk menangani interaksi pengguna dan menjembatani model dan view. |
-| `db/` | Berisi `DatabaseHelper` untuk mengelola operasi SQLite dan inisialisasi skema. |
-| `model/` | Mendefinisikan entitas data yang digunakan di seluruh aplikasi. |
-| `view/` | Layout UI, komponen kustom, dan manajemen scene menggunakan JavaFX. |
-| `service/` | Lapisan logika bisnis tambahan untuk operasi kompleks seperti pelacakan target. |
-| `resources/` | Konfigurasi eksternal dan file CSS untuk gaya aplikasi global. |
-| `data/` | Menyimpan database SQLite lokal dan media yang diunggah pengguna. |
-| `img/` | Berisi semua aset gambar statis yang digunakan dalam UI aplikasi. |
-
-### Komponen Penting
-
-*   **`MainApp.java`**: Kelas inti aplikasi yang menginisialisasi database dan mengelola stage serta transisi scene utama.
-*   **`DatabaseHelper.java`**: Kelas terpusat untuk semua interaksi database, memastikan koneksi yang aman dan menyediakan metode CRUD.
-*   **`style.css`**: Stylesheet utama yang menentukan estetika visual aplikasi, termasuk warna, font (Outfit), dan styling komponen.
-
 ## 🛠️ Prasyarat
 
 Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
 
 - **Java Development Kit (JDK) 21** atau versi yang lebih baru.
 - **Apache Maven** untuk manajemen proyek.
+- **SQLite** (biasanya sudah termasuk dalam library JDBC).
 
-## ⚙️ Cara Menjalankan Aplikasi
+## ⚙️ Instalasi dan Cara Menjalankan
 
 1. **Clone Repositori**
    ```bash
@@ -119,15 +37,69 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
    mvn javafx:run
    ```
 
-## 👥 Anggota Kelompok (G02)
+## 🧩 Modul yang Diimplementasikan
 
-| No | Nama | NIM |
-|:---:|:---|:---:|
-| 1 | Nadine Octavia | 18224012 |
-| 2 | Danya Soe | 18224024 |
-| 3 | Anisa Aulia Alhaqi | 18224080 |
-| 4 | Zahra Nur Azizah | 18224092 |
-| 5 | Riko Satriya Giovanni | 18224108 |
+| Nama Modul | Deskripsi |
+|:---|:---|
+| **Autentikasi & Registrasi** | Mengelola proses pendaftaran akun baru dan login pengguna. |
+| **Manajemen Jurnal** | Memungkinkan pengguna membuat, membaca, memperbarui, dan menghapus (CRUD) entri jurnal. |
+| **Target Self-Care** | Sistem untuk menetapkan dan melacak status penyelesaian target harian. |
+| **Dashboard & Kalender** | Tampilan utama yang merangkum aktivitas harian dan navigasi berbasis tanggal. |
+| **Profil Pengguna** | Mengelola informasi pribadi pengguna, termasuk foto profil. |
+| **Analisis & Mood** | Visualisasi tren emosi harian dan statistik pencapaian target. |
+| **Pencarian & Filter** | Mempermudah pencarian entri jurnal berdasarkan kriteria tertentu. |
+
+## 🗄️ Basis Data
+
+Aplikasi menggunakan SQLite dengan skema tabel sebagai berikut:
+
+- **User**: Menyimpan data akun pengguna.
+  - `id` (INTEGER, PK): ID unik pengguna.
+  - `full_name` (TEXT): Nama lengkap.
+  - `username` (TEXT, UNIQUE): Username untuk login.
+  - `password` (TEXT): Password akun.
+  - `profile_photo_path` (TEXT): Path file foto profil.
+
+- **JournalEntry**: Menyimpan entri jurnal harian.
+  - `id` (INTEGER, PK): ID unik entri.
+  - `category` (TEXT): Kategori jurnal.
+  - `title` (TEXT): Judul entri.
+  - `description` (TEXT): Isi jurnal.
+  - `trigger` (TEXT): Pemicu emosi.
+  - `target` (TEXT): Target terkait.
+  - `date` (TEXT): Tanggal entri.
+  - `time` (TEXT): Waktu entri.
+  - `photo_id` (TEXT): Referensi ke foto.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik entri.
+
+- **SelfCareGoal**: Menyimpan target perawatan diri.
+  - `id` (INTEGER, PK): ID unik target.
+  - `title` (TEXT): Nama target.
+  - `is_completed` (INTEGER): Status penyelesaian (0/1).
+  - `date` (TEXT): Tanggal target.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik target.
+
+- **DailyMood**: Menyimpan catatan mood harian.
+  - `id` (INTEGER, PK): ID unik mood.
+  - `mood_name` (TEXT): Nama emosi.
+  - `date` (TEXT): Tanggal pencatatan.
+  - `user_id` (INTEGER, FK): Referensi ke pemilik data.
+
+- **Photo**: Menyimpan referensi file gambar.
+  - `id` (INTEGER, PK): ID unik foto.
+  - `filePath` (TEXT): Path file gambar di penyimpanan lokal.
+
+## 👥 Pembagian Tugas Implementasi (G02)
+
+Setiap anggota bertanggung jawab minimal atas satu bagian yang mencakup Model, Antarmuka (View), dan Logika (Controller/Service).
+
+| No | Nama | NIM | Model | View | Controller / Helper |
+|:---:|:---|:---:|:---|:---|:---|
+| 1 | Nadine Octavia | 18224012 | `SelfCareGoal` | `CalendarView`, `GoalModal` | `GoalController`, `GoalService` |
+| 2 | Danya Soe | 18224024 | `JournalEntry`, `Photo` | `EntryFormView`, `EntryDetailView` | `EntryController`, `DatabaseHelper` |
+| 3 | Anisa Aulia Alhaqi | 18224080 | `User` (Profile) | `ProfileView`, `EntryManagerView` | `ProfileManager` |
+| 4 | Zahra Nur Azizah | 18224092 | `SearchFilter` | `RegistrationFormView`, `EntryListView`, `SearchView` | `RegistrationFormController`, `SearchController` |
+| 5 | Riko Satriya Giovanni | 18224108 | `DailyMood` | `DashboardView`, `VisualizerView` | `AnalyticsController`, `MoodController` |
 
 ---
 
