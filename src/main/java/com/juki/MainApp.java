@@ -135,7 +135,7 @@ public class MainApp extends Application {
         navKalendar.setStyle("-fx-cursor: hand;");
         
         // Tambah Self-Care Button (Action Button)
-        Button btnAction = new Button("Tambah Self-Care");
+        Button btnAction = new Button("Tambah Jurnal");
         try {
             ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
             notesIcon.setFitWidth(32);
@@ -230,9 +230,7 @@ public class MainApp extends Application {
             navKalendar.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-            searchBox.setVisible(false);
-            searchBox.setManaged(false);
-            updateActionButton.accept("Tambah Target", "img/icons/calendar.png");
+            updateActionButton.accept("Tambah Self-Care", "img/icons/notes.png");
             CalendarView calendarView = new CalendarView(user);
             root.setCenter(calendarView.getView());
         });

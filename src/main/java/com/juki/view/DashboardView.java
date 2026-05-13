@@ -115,8 +115,10 @@ public class DashboardView {
     }
 
     private HBox createStreakWidget() {
-        HBox container = new HBox(56);
-        container.setPrefSize(689, 137); container.setPadding(new Insets(32, 32, 32, 32));
+        HBox container = new HBox(20);
+        container.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        container.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        container.setPadding(new Insets(10, 10, 10, 10));
         container.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-radius: 20px; -fx-background-radius: 20px;");
         container.setAlignment(Pos.CENTER);
 
