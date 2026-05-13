@@ -41,9 +41,8 @@ public class DatabaseHelper {
                 "target TEXT," +
                 "date TEXT," +
                 "time TEXT," +
-                "photo_id INTEGER," +
+                "photo_id TEXT," +
                 "user_id INTEGER," +
-                "FOREIGN KEY (photo_id) REFERENCES Photo(id)," +
                 "FOREIGN KEY (user_id) REFERENCES User(id)" +
                 ");";
 
@@ -51,7 +50,17 @@ public class DatabaseHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "title TEXT NOT NULL," +
                 "is_completed INTEGER DEFAULT 0," +
-                "date TEXT NOT NULL" +
+                "date TEXT NOT NULL," +
+                "user_id INTEGER NOT NULL," +
+                "FOREIGN KEY (user_id) REFERENCES User(id)" +
+                ");";
+
+        String sqlMoodTable = "CREATE TABLE IF NOT EXISTS DailyMood (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "mood_name TEXT NOT NULL," +
+                "date TEXT NOT NULL," +
+                "user_id INTEGER NOT NULL," +
+                "FOREIGN KEY (user_id) REFERENCES User(id)" +
                 ");";
 
         try (Connection conn = getConnection();
@@ -68,6 +77,25 @@ public class DatabaseHelper {
             stmt.execute(sqlPhotoTable);
             stmt.execute(sqlJournalTable);
             stmt.execute(sqlSelfCareTable);
+
+            // Check if user_id column exists in SelfCareGoal, if not, add it
+            try {
+                stmt.execute("ALTER TABLE SelfCareGoal ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1;");
+                stmt.execute("UPDATE SelfCareGoal SET user_id = 1 WHERE user_id IS NULL;");
+            } catch (SQLException e) {
+                // Column likely already exists, ignore
+            }
+
+            stmt.execute(sqlMoodTable);
+
+            // Check if user_id column exists in SelfCareGoal, if not, add it
+            try {
+                stmt.execute("ALTER TABLE SelfCareGoal ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1;");
+                stmt.execute("UPDATE SelfCareGoal SET user_id = 1 WHERE user_id IS NULL;");
+            } catch (SQLException e) {
+                // Column likely already exists, ignore
+            }
+
             System.out.println("Database initialized successfully.");
         } catch (SQLException e) {
             System.err.println("Error initializing database: " + e.getMessage());
@@ -85,6 +113,7 @@ public class DatabaseHelper {
             stmt.execute("DELETE FROM JournalEntry;");
             stmt.execute("DELETE FROM Photo;");
             stmt.execute("DELETE FROM SelfCareGoal;");
+            stmt.execute("DELETE FROM DailyMood;");
             stmt.execute("DELETE FROM User;");
             System.out.println("Semua data dalam tabel berhasil dikosongkan (Tabel tetap utuh).");
         } catch (SQLException e) {
@@ -98,6 +127,7 @@ public class DatabaseHelper {
             stmt.execute("DROP TABLE IF EXISTS JournalEntry;");
             stmt.execute("DROP TABLE IF EXISTS Photo;");
             stmt.execute("DROP TABLE IF EXISTS SelfCareGoal;");
+            stmt.execute("DROP TABLE IF EXISTS DailyMood;");
             stmt.execute("DROP TABLE IF EXISTS User;");
             System.out.println("Semua tabel berhasil dihapus dari database.");
         } catch (SQLException e) {

@@ -38,8 +38,19 @@ public class RegistrationFormView {
         this.onSuccess = onSuccess;
         
         view = new StackPane();
-        view.setStyle("-fx-background-color: #F3A7FF;");
         view.setAlignment(Pos.CENTER);
+
+        // Background image
+        try {
+            javafx.scene.image.Image bgImage = new javafx.scene.image.Image("file:img/dashboard/signin_bg.png");
+            javafx.scene.image.ImageView bgView = new javafx.scene.image.ImageView(bgImage);
+            bgView.setPreserveRatio(false);
+            bgView.fitWidthProperty().bind(view.widthProperty());
+            bgView.fitHeightProperty().bind(view.heightProperty());
+            view.getChildren().add(bgView);
+        } catch (Exception e) {
+            view.setStyle("-fx-background-color: #F3A7FF;");
+        }
 
         card = new VBox();
         card.setMaxWidth(536); // 480 + 28*2

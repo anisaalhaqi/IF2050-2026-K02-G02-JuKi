@@ -1,0 +1,181 @@
+/* General Colors */
+.primary-purple { -fx-text-fill: #A114AC; }
+.bg-purple { -fx-background-color: #A114AC; }
+.accent-yellow { -fx-background-color: #FFE341; }
+.text-dark { -fx-text-fill: #292929; }
+
+/* Custom Date Picker Popup */
+.date-picker-popup {
+    -fx-background-color: white;
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+    -fx-padding: 20px;
+}
+
+.calendar-grid {
+    -fx-hgap: 5px;
+    -fx-vgap: 5px;
+}
+
+.calendar-cell {
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-background-radius: 50%;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 14px;
+    -fx-transition: -fx-background-color 0.2s;
+}
+
+.calendar-cell:hover {
+    -fx-background-color: #FFF9C4; /* Light yellow */
+}
+
+.calendar-cell-selected {
+    -fx-background-color: #FFE341; /* Yellow */
+    -fx-font-weight: bold;
+}
+
+.calendar-cell-today {
+    -fx-border-color: #A114AC;
+    -fx-border-radius: 50%;
+}
+
+.calendar-header {
+    -fx-font-family: 'Outfit';
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: #292929;
+}
+
+/* More Menu (⋮) */
+.more-menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-padding: 5px;
+}
+
+.more-menu-button:hover {
+    -fx-background-color: rgba(255, 227, 65, 0.3); /* Transparent yellow */
+}
+
+.more-popup {
+    -fx-background-color: white;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 2);
+    -fx-padding: 5px 0;
+}
+
+.more-item {
+    -fx-padding: 8px 20px;
+    -fx-cursor: hand;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 14px;
+}
+
+.more-item:hover {
+    -fx-background-color: #F5F5F5;
+}
+
+.more-item-delete {
+    -fx-text-fill: #FF5252;
+}
+
+/* Modal Improvements */
+.modal-card {
+    -fx-background-color: white;
+    -fx-background-radius: 34.78px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);
+}
+
+.target-label {
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 18px;
+    -fx-text-fill: #292929; /* Ensure visible */
+}
+
+.target-label-completed {
+    -fx-text-fill: #767676;
+    -fx-text-decoration: line-through;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Dropdown Menu Style - COMPACT */
+.dropdown-menu {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 15, 0, 0, 5);
+    -fx-padding: 8px;
+}
+
+.dropdown-item {
+    -fx-padding: 12px 20px;
+    -fx-cursor: hand;
+    -fx-font-family: 'Outfit';
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
+    -fx-text-fill: #292929;
+    -fx-background-radius: 8px;
+    -fx-transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    -fx-background-color: rgba(255, 227, 65, 0.25); /* Accent yellow transparent */
+}
+
+/* Delete Confirmation Modal */
+.delete-modal {
+    -fx-background-color: white;
+    -fx-background-radius: 34.78px;
+    -fx-padding: 55px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);
+}
+
+.delete-title {
+    -fx-font-family: 'Inter';
+    -fx-font-size: 29.57px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #292929;
+    -fx-line-spacing: 8px; /* line-height 38.26px */
+}
+
+.btn-delete-confirm {
+    -fx-background-color: #DC2626;
+    -fx-background-radius: 12.5px;
+    -fx-text-fill: white;
+    -fx-font-family: 'Plus Jakarta Sans';
+    -fx-font-weight: 600;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-padding: 12px 30px;
+}
+
+.btn-delete-confirm:hover {
+    -fx-background-color: #B91C1C;
+}
+
+.btn-delete-cancel {
+    -fx-background-color: white;
+    -fx-border-color: #DC2626;
+    -fx-border-radius: 12.5px;
+    -fx-text-fill: #DC2626;
+    -fx-font-family: 'Plus Jakarta Sans';
+    -fx-font-weight: 600;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-padding: 12px 30px;
+}
+
+.btn-delete-cancel:hover {
+    -fx-background-color: #FEF2F2;
+}

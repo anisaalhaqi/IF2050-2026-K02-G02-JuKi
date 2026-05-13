@@ -15,8 +15,8 @@ public class SearchFilter {
     }
 
     public boolean isValidFilter() {
-        return (keyword != null && keyword.length() >= 3) || 
-               (category != null && !category.isEmpty()) || 
+        return (keyword != null && !keyword.trim().isEmpty()) ||
+               (category != null && !category.isEmpty()) ||
                (date != null);
     }
 

@@ -1,10 +1,16 @@
 package com.juki;
 
 import com.juki.controller.RegistrationFormController;
+import com.juki.controller.SearchController;
 import com.juki.db.DatabaseHelper;
+import com.juki.controller.EntryController;
+import com.juki.model.JournalEntry;
+import com.juki.model.JournalEntry;
 import com.juki.model.User;
 import com.juki.view.DashboardView;
+import java.util.List;
 import com.juki.view.CalendarView;
+import com.juki.view.EntryDetailView;
 import com.juki.view.EntryFormView;
 import com.juki.view.EntryListView;
 import com.juki.view.RegistrationFormView;
@@ -15,6 +21,16 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import java.util.function.Consumer;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -45,15 +61,16 @@ public class MainApp extends Application {
         Scene scene = new Scene(loginView.getView(), 1600, 900);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 
     private void showMainDashboard(Stage primaryStage, User user) {
         BorderPane root = new BorderPane();
-        
+        SearchController searchController = new SearchController();
+
         // Top Navigation Bar
-        HBox navBar = new HBox();
+        HBox navBar = new HBox(20);
         navBar.setStyle("-fx-background-color: #A114AC; -fx-padding: 42px 100px;");
         navBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -70,7 +87,124 @@ public class MainApp extends Application {
         HBox logoBox = new HBox(32);
         logoBox.setAlignment(Pos.CENTER_LEFT);
         logoBox.getChildren().addAll(logo);
-        
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Cari Jurnal");
+        searchField.setPrefWidth(320);
+        searchField.setStyle("-fx-background-radius: 100px; -fx-background-color: white; -fx-padding: 12px 18px; -fx-font-size: 16px;");
+        Button searchButton = new Button("Cari");
+        searchButton.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 16px; -fx-background-radius: 100px; -fx-padding: 12px 24px; -fx-cursor: hand;");
+
+        Runnable performSearch = () -> {
+            String keyword = searchField.getText() != null ? searchField.getText().trim() : "";
+            if (keyword.isEmpty()) {
+                return;
+            }
+            List<JournalEntry> results = searchController.searchEntries(new com.juki.model.SearchFilter(null, keyword, null), user.getId());
+
+            // Build new search result page — same style as journal list
+            VBox searchPage = new VBox(32);
+            searchPage.setPadding(new Insets(50, 100, 50, 100));
+            searchPage.setStyle("-fx-background-color: #FDF3FF;");
+
+            // "Hasil untuk [keyword]" header — same font size as journal page title
+            HBox resultHeader = new HBox(16);
+            resultHeader.setAlignment(Pos.CENTER_LEFT);
+            Label hasilLabel = new Label("Hasil untuk");
+            hasilLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 40));
+            hasilLabel.setTextFill(Color.web("#8D1395"));
+            Label keywordLabel = new Label("\"" + keyword + "\"");
+            keywordLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 40));
+            keywordLabel.setTextFill(Color.web("#292929"));
+            resultHeader.getChildren().addAll(hasilLabel, keywordLabel);
+
+            // Result cards — exactly same style as EntryListView cards
+            VBox cardList = new VBox(20);
+            if (results.isEmpty()) {
+                Label emptyLbl = new Label("Tidak ada jurnal yang cocok dengan pencarian ini.");
+                emptyLbl.setFont(Font.font("Outfit", 18));
+                emptyLbl.setTextFill(Color.GRAY);
+                cardList.getChildren().add(emptyLbl);
+            } else {
+                for (JournalEntry entry : results) {
+                    HBox card = new HBox();
+                    card.setStyle("-fx-background-color: white; -fx-background-radius: 20px; -fx-border-color: #D6D6D6; -fx-border-width: 1px; -fx-border-radius: 20px; -fx-padding: 32px; -fx-cursor: hand;");
+                    card.setAlignment(Pos.CENTER_LEFT);
+
+                    VBox textContent = new VBox(24);
+                    HBox.setHgrow(textContent, Priority.ALWAYS);
+
+                    Label titleLbl = new Label(entry.getTitle() != null ? entry.getTitle() : "Tanpa Judul");
+                    titleLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 36));
+                    titleLbl.setTextFill(Color.BLACK);
+                    titleLbl.setWrapText(true);
+
+                    Label descLbl = new Label(entry.getDescription() != null ? entry.getDescription() : "");
+                    descLbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 18));
+                    descLbl.setTextFill(Color.web("#434343"));
+                    descLbl.setWrapText(true);
+
+                    HBox metaRow = new HBox(16);
+                    metaRow.setAlignment(Pos.CENTER_LEFT);
+                    String dateStr = entry.getDate() != null ?
+                        entry.getDate().format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", java.util.Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
+                    if (entry.getTime() != null) {
+                        dateStr += " " + entry.getTime().format(java.time.format.DateTimeFormatter.ofPattern("HH.mm"));
+                    }
+                    Label dateLbl = new Label(dateStr);
+                    dateLbl.setFont(Font.font("Outfit", FontWeight.LIGHT, 16));
+                    dateLbl.setTextFill(Color.web("#767676"));
+                    metaRow.getChildren().add(dateLbl);
+                    if (entry.getCategory() != null && !entry.getCategory().isEmpty()) {
+                        Label tag = new Label(entry.getCategory());
+                        tag.setStyle("-fx-background-color: #FFFAC1; -fx-border-color: #A66502; -fx-border-width: 0.56px; -fx-border-radius: 55.56px; -fx-background-radius: 55.56px; -fx-padding: 4px 17px; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-font-weight: 300;");
+                        metaRow.getChildren().add(tag);
+                    }
+
+                    textContent.getChildren().addAll(titleLbl, descLbl, metaRow);
+
+                    // Thumbnail if photo exists
+                    if (entry.getPhotos() != null && !entry.getPhotos().isEmpty()) {
+                        String photoPath = entry.getPhotos().get(0).getFilePath();
+                        if (photoPath != null && !photoPath.isEmpty()) {
+                            try {
+                                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                                    new javafx.scene.image.Image("file:" + photoPath));
+                                iv.setFitWidth(220); iv.setFitHeight(160); iv.setPreserveRatio(false);
+                                VBox thumb = new VBox(iv);
+                                thumb.setPrefSize(220, 160); thumb.setMinSize(220, 160); thumb.setMaxSize(220, 160);
+                                thumb.setStyle("-fx-background-radius: 16px; -fx-padding: 0 0 0 32px;");
+                                card.getChildren().addAll(textContent, thumb);
+                            } catch (Exception ex) {
+                                card.getChildren().add(textContent);
+                            }
+                        } else {
+                            card.getChildren().add(textContent);
+                        }
+                    } else {
+                        card.getChildren().add(textContent);
+                    }
+
+                    card.setOnMouseClicked(e -> showEntryDetail(root, user, entry.getId()));
+                    cardList.getChildren().add(card);
+                }
+            }
+
+            searchPage.getChildren().addAll(resultHeader, cardList);
+            ScrollPane sp = new ScrollPane(searchPage);
+            sp.setFitToWidth(true);
+            sp.setStyle("-fx-background-color: transparent; -fx-background: #FDF3FF;");
+            root.setCenter(sp);
+        };
+
+        searchField.setOnAction(e -> performSearch.run());
+        searchButton.setOnAction(e -> performSearch.run());
+
+        HBox searchBox = new HBox(10, searchField, searchButton);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setVisible(false);
+        searchBox.setManaged(false);
+
         // Navigation Links Section
         HBox navLinks = new HBox(64);
         navLinks.setAlignment(Pos.CENTER_LEFT);
@@ -91,7 +225,7 @@ public class MainApp extends Application {
         navKalendar.setStyle("-fx-cursor: hand;");
         
         // Tambah Self-Care Button (Action Button)
-        Button btnAction = new Button("Tambah Self-Care");
+        Button btnAction = new Button("Tambah Jurnal");
         try {
             ImageView notesIcon = new ImageView(new Image("file:img/icons/notes.png"));
             notesIcon.setFitWidth(32);
@@ -103,6 +237,8 @@ public class MainApp extends Application {
             System.err.println("Could not load action icon: " + e.getMessage());
         }
         btnAction.setStyle("-fx-background-color: white; -fx-text-fill: #A114AC; -fx-font-family: 'Outfit'; -fx-font-size: 25px; -fx-background-radius: 10px; -fx-padding: 16px 32px; -fx-cursor: hand;");
+        btnAction.setPrefWidth(320);
+        btnAction.setMinWidth(320);
         
         navLinks.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnAction);
 
@@ -140,6 +276,8 @@ public class MainApp extends Application {
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(false);
+            searchBox.setManaged(false);
             ProfileView profileView = new ProfileView(() -> showLoginScreen(primaryStage));
             root.setCenter(profileView.getView(user));
         });
@@ -152,7 +290,7 @@ public class MainApp extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        navBar.getChildren().addAll(logoBox, spacer, menuBox);
+        navBar.getChildren().addAll(logoBox, searchBox, spacer, menuBox);
         root.setTop(navBar);
 
         // Event Navigation Routing
@@ -161,6 +299,8 @@ public class MainApp extends Application {
             navBeranda.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(false);
+            searchBox.setManaged(false);
             updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
             DashboardView dashboardView = new DashboardView();
             root.setCenter(dashboardView.getDashboardView(user, root));
@@ -171,9 +311,10 @@ public class MainApp extends Application {
             navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+            searchBox.setVisible(true);
+            searchBox.setManaged(true);
             updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
-            EntryListView entryListView = new EntryListView(user);
-            root.setCenter(entryListView.getView());
+            showEntryList(root, user);
         });
         
         navKalendar.setOnMouseClicked(e -> {
@@ -181,7 +322,7 @@ public class MainApp extends Application {
             navKalendar.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
             navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
             navJurnal.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-            updateActionButton.accept("Tambah Target", "img/icons/calendar.png");
+            updateActionButton.accept("Tambah Self-Care", "img/icons/notes.png");
             CalendarView calendarView = new CalendarView(user);
             root.setCenter(calendarView.getView());
         });
@@ -192,17 +333,22 @@ public class MainApp extends Application {
                 navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                 navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                 navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
+                searchBox.setVisible(true);
+                searchBox.setManaged(true);
 
                 EntryFormView entryFormView = new EntryFormView(user, () -> {
                     navJurnal.setFont(Font.font("Outfit", FontWeight.BOLD, 25));
                     navBeranda.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                     navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
-                    EntryListView entryListView = new EntryListView(user);
-                    root.setCenter(entryListView.getView());
+                    searchBox.setVisible(true);
+                    searchBox.setManaged(true);
+                    showEntryList(root, user);
                 });
                 root.setCenter(entryFormView.getView().getCenter());
             } else {
                 com.juki.view.GoalModal goalModal = new com.juki.view.GoalModal(user, LocalDate.now(), () -> {
+                    searchBox.setVisible(false);
+                    searchBox.setManaged(false);
                     CalendarView calendarView = new CalendarView(user);
                     root.setCenter(calendarView.getView());
                 });
@@ -221,7 +367,55 @@ public class MainApp extends Application {
         primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
+        primaryStage.setResizable(true);
         primaryStage.show();
+    }
+
+    private void showEntryList(BorderPane root, User user) {
+        EntryListView entryListView = new EntryListView(user, id -> showEntryDetail(root, user, id));
+        root.setCenter(entryListView.getView());
+    }
+
+    private void showEntryDetail(BorderPane root, User user, int entryId) {
+        EntryController entryController = new EntryController();
+        JournalEntry entry = entryController.getEntryDetail(entryId);
+        if (entry == null) {
+            System.err.println("Jurnal tidak ditemukan: " + entryId);
+            return;
+        }
+        EntryDetailView detailView = new EntryDetailView();
+
+        // onEditAction: buka form edit
+        Consumer<JournalEntry> onEditAction = (JournalEntry journalEntry) -> {
+            showEntryForm(root, user, journalEntry); // Pass journalEntry untuk edit mode
+        };
+
+        // onDeleteAction: hapus entry dan kembali ke list
+        Runnable onDeleteAction = () -> {
+            entryController.deleteEntry(entryId);
+            showEntryList(root, user); // Kembali ke list setelah hapus
+        };
+
+        root.setCenter(detailView.getView(entry, user.getFullName(), () -> showEntryList(root, user), onEditAction, onDeleteAction));
+    }
+
+    private void showEntryForm(BorderPane root, User user, JournalEntry entryToEdit) {
+        EntryFormView entryFormView;
+        if (entryToEdit != null) {
+            // Edit mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After save changes, kembali ke detail view dengan data terbaru
+                showEntryDetail(root, user, entryToEdit.getId());
+            }, entryToEdit);
+        } else {
+            // New entry mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After post, kembali ke list
+                showEntryList(root, user);
+            });
+        }
+
+        root.setCenter(entryFormView.getView().getCenter());
     }
 
     public static void main(String[] args) {

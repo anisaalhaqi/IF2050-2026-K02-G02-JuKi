@@ -3,28 +3,49 @@ package com.juki.view;
 import com.juki.controller.EntryController;
 import com.juki.model.JournalEntry;
 import com.juki.model.User;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 
 public class EntryFormView {
     private TextField titleField;
     private ComboBox<String> catCombo;
     private TextField causeField;
     private TextArea writeArea;
+    private FlowPane selectedImagePane;
+    private List<String> selectedPhotoPaths = new ArrayList<>();
     private User user;
     private Runnable onPostSuccess;
+    private JournalEntry editingEntry;
+    private List<com.juki.model.Photo> editingPhotos = new ArrayList<>();
 
     public EntryFormView(User user, Runnable onPostSuccess) {
         this.user = user;
         this.onPostSuccess = onPostSuccess;
+        this.editingEntry = null;
+    }
+
+    public EntryFormView(User user, Runnable onPostSuccess, JournalEntry entryToEdit) {
+        this.user = user;
+        this.onPostSuccess = onPostSuccess;
+        this.editingEntry = entryToEdit;
+        if (entryToEdit != null && entryToEdit.getPhotos() != null) {
+            this.editingPhotos = new ArrayList<>(entryToEdit.getPhotos());
+        }
     }
 
     public BorderPane getView() {
@@ -91,7 +112,7 @@ public class EntryFormView {
         Region spacerRow1 = new Region();
         HBox.setHgrow(spacerRow1, Priority.ALWAYS);
 
-        Button btnPost = new Button("Post");
+        Button btnPost = new Button(editingEntry != null ? "Save Changes" : "Post");
         btnPost.setStyle("-fx-background-color: #FFD54F; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 8px 30px; -fx-cursor: hand;");
         btnPost.setOnAction(e -> handlePost());
 
@@ -129,49 +150,63 @@ public class EntryFormView {
         row4.getChildren().addAll(causeLbl, causeField);
 
         // Baris 5: Area Tulis Jurnal
-        HBox row5 = new HBox(15);
+        VBox row5 = new VBox(15);
+        row5.setPadding(new Insets(10));
+        row5.setStyle(
+            "-fx-background-color: #FFFFFF; " +      
+            "-fx-border-color: #E0E0E0; " +          
+            "-fx-border-width: 1px; " +              
+            "-fx-border-radius: 10px; " +            
+            "-fx-background-radius: 10px;"
+        );
         Button btnImage = new Button("📷");
         btnImage.setShape(new Circle(25));
         btnImage.setMinSize(50, 50);
         btnImage.setMaxSize(50, 50);
-        btnImage.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #888888; -fx-font-size: 20px; -fx-cursor: hand;");
+        btnImage.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #e6e5e5; -fx-font-size: 20px; -fx-cursor: hand;");
         btnImage.setOnAction(e -> handleUploadImage());
 
+        selectedImagePane = new FlowPane(10, 10);
+        selectedImagePane.setPrefWrapLength(280);
+        selectedImagePane.setMaxWidth(280);
+        selectedImagePane.setStyle("-fx-background-color: transparent;");
+
+        Label imagePreviewLabel = new Label("Pratinjau gambar akan muncul setelah memilih file.");
+        imagePreviewLabel.setStyle("-fx-text-fill: #9E9E9E; -fx-font-size: 12px;");
+
+        VBox imagePreviewBox = new VBox(10, imagePreviewLabel, selectedImagePane);
+        imagePreviewBox.setAlignment(Pos.CENTER_LEFT);
+        imagePreviewBox.setPrefWidth(280);
+
+        HBox imageBox = new HBox(15, btnImage, imagePreviewBox);
+        imageBox.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(imagePreviewBox, Priority.ALWAYS);
+
         writeArea = new TextArea();
-        writeArea.setPromptText("Tulis ceritamu hari ini!");
-        writeArea.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: transparent; -fx-font-size: 16px;");
+        String originalPrompt = "Tulis ceritamu hari ini!";
+        writeArea.setPromptText(originalPrompt);
+
+        // Tambahkan logika hilangkan prompt saat fokus
+        writeArea.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                // Jika kotak diklik (fokus), hilangkan prompt text
+                writeArea.setPromptText("");
+            } else {
+                // Jika klik di luar kotak (hilang fokus) dan kosong, munculkan lagi
+                if (writeArea.getText().isEmpty()) {
+                    writeArea.setPromptText(originalPrompt);
+                }
+            }
+        });
+        writeArea.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-border-color: transparent; -fx-text-fill: black; -fx-prompt-text-fill: #9E9E9E; -fx-font-size: 12px; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
         writeArea.setPrefHeight(200);
         writeArea.setWrapText(true);
-        HBox.setHgrow(writeArea, Priority.ALWAYS); // Memenuhi sisa ruang
+        VBox.setVgrow(writeArea, Priority.ALWAYS);
         
-        row5.getChildren().addAll(btnImage, writeArea);
-
-        // Baris 6: Card Target Hari Ini
-        VBox row6 = new VBox(15);
-        row6.setStyle("-fx-border-color: #E0E0E0; -fx-border-radius: 10px; -fx-padding: 20px;");
-        
-        HBox targetTop = new HBox(15);
-        targetTop.setAlignment(Pos.CENTER_LEFT);
-        Circle targetCircle = new Circle(22, Color.web("#F5F5F5"));
-        
-        VBox targetTexts = new VBox(5);
-        Label targetTitle = new Label("Target Hari Ini");
-        targetTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
-        Label targetDesc = new Label("Kamu belum ada target apapun, nih!");
-        targetDesc.setTextFill(Color.web("#9E9E9E"));
-        targetTexts.getChildren().addAll(targetTitle, targetDesc);
-        
-        targetTop.getChildren().addAll(targetCircle, targetTexts);
-
-        Label btnAddTarget = new Label("+ Tambah Target");
-        btnAddTarget.setTextFill(Color.web("#9E9E9E"));
-        btnAddTarget.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
-        btnAddTarget.setOnMouseClicked(e -> handleAddTarget());
-
-        row6.getChildren().addAll(targetTop, btnAddTarget);
+        row5.getChildren().addAll(imageBox, writeArea);
 
         // Susun semua komponen di dalam container
-        content.getChildren().addAll(row1, titleField, row3, row4, row5, row6);
+        content.getChildren().addAll(row1, titleField, row3, row4, row5);
 
         // Bungkus content dengan ScrollPane
         ScrollPane scrollPane = new ScrollPane(content);
@@ -181,7 +216,75 @@ public class EntryFormView {
 
         root.setCenter(scrollPane);
         
+        // Pre-fill data jika mode edit
+        if (editingEntry != null) {
+            preFillFormData();
+        }
+
         return root;
+    }
+
+    private void preFillFormData() {
+        if (editingEntry == null) return;
+
+        titleField.setText(editingEntry.getTitle() != null ? editingEntry.getTitle() : "");
+        catCombo.setValue(editingEntry.getCategory() != null ? editingEntry.getCategory() : "Umum");
+        causeField.setText(editingEntry.getTrigger() != null ? editingEntry.getTrigger() : "");
+        writeArea.setText(editingEntry.getDescription() != null ? editingEntry.getDescription() : "");
+
+        // Load existing photos
+        selectedPhotoPaths.clear();
+        selectedImagePane.getChildren().clear();
+
+        if (editingPhotos != null && !editingPhotos.isEmpty()) {
+            for (com.juki.model.Photo photo : editingPhotos) {
+                if (photo != null && photo.getFilePath() != null) {
+                    selectedPhotoPaths.add(photo.getFilePath());
+                    displayPhotoWithDeleteButton(photo.getFilePath(), photo.getId());
+                }
+            }
+        }
+    }
+
+    private void displayPhotoWithDeleteButton(String filePath, Integer photoId) {
+        File file = new File(filePath);
+        if (!file.exists()) return;
+
+        try {
+            Image image = new Image(file.toURI().toString(), 120, 0, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(120);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+
+            // Delete Button (X)
+            Circle deleteBtn = new Circle(12);
+            deleteBtn.setFill(Color.web("#DC2626"));
+            Label deleteIcon = new Label("✕");
+            deleteIcon.setTextFill(Color.WHITE);
+            deleteIcon.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
+
+            StackPane deleteButton = new StackPane(deleteBtn, deleteIcon);
+            deleteButton.setStyle("-fx-cursor: hand;");
+            deleteButton.setOnMouseClicked(e -> {
+                selectedPhotoPaths.remove(filePath);
+                editingPhotos.removeIf(p -> p.getId() != null && p.getId().equals(photoId));
+                selectedImagePane.getChildren().remove((StackPane) imageView.getParent());
+            });
+
+            StackPane photoContainer = new StackPane(imageView);
+            photoContainer.setPrefSize(120, 120);
+            photoContainer.setStyle("-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);");
+
+            // Position delete button at top-left
+            StackPane.setAlignment(deleteButton, Pos.TOP_LEFT);
+            StackPane.setMargin(deleteButton, new Insets(4, 0, 0, 4));
+            photoContainer.getChildren().add(deleteButton);
+
+            selectedImagePane.getChildren().add(photoContainer);
+        } catch (Exception e) {
+            System.err.println("Error loading photo: " + e.getMessage());
+        }
     }
 
     // ==========================================
@@ -191,17 +294,47 @@ public class EntryFormView {
         System.out.println("Tombol Post ditekan! Menyimpan jurnal ke database...");
 
         EntryController controller = new EntryController();
-        JournalEntry entry = new JournalEntry();
+        JournalEntry entry;
         
-        entry.setTitle(titleField.getText());
-        entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
-        entry.setTrigger(causeField.getText());
-        entry.setDescription(writeArea.getText());
-        entry.setDate(LocalDate.now());
-        entry.setTime(LocalTime.now());
-        entry.setUserId(user.getId());
+        if (editingEntry != null) {
+            // Mode Update
+            entry = editingEntry;
+            entry.setTitle(titleField.getText());
+            entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
+            entry.setTrigger(causeField.getText());
+            entry.setDescription(writeArea.getText());
 
-        controller.addEntry(entry); // Simpan ke database
+            // Combine new photos with existing ones
+            List<com.juki.model.Photo> allPhotos = new ArrayList<>(editingPhotos);
+            for (String path : selectedPhotoPaths) {
+                if (!editingPhotos.stream().anyMatch(p -> p.getFilePath().equals(path))) {
+                    allPhotos.add(new com.juki.model.Photo(null, path));
+                }
+            }
+            entry.setPhotos(allPhotos);
+
+            controller.updateEntryWithPhotos(entry, allPhotos);
+        } else {
+            // Mode Create
+            entry = new JournalEntry();
+            entry.setTitle(titleField.getText());
+            entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
+            entry.setTrigger(causeField.getText());
+            entry.setDescription(writeArea.getText());
+            entry.setDate(LocalDate.now());
+            entry.setTime(LocalTime.now());
+            entry.setUserId(user.getId());
+
+            if (!selectedPhotoPaths.isEmpty()) {
+                List<com.juki.model.Photo> photos = new ArrayList<>();
+                for (String path : selectedPhotoPaths) {
+                    photos.add(new com.juki.model.Photo(null, path));
+                }
+                entry.setPhotos(photos);
+            }
+
+            controller.saveJournal(entry);
+        }
 
         if (onPostSuccess != null) {
             onPostSuccess.run(); // Alihkan layar via callback
@@ -209,7 +342,62 @@ public class EntryFormView {
     }
 
     private void handleUploadImage() {
-        System.out.println("Membuka FileChooser untuk memilih foto jurnal...");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pilih Gambar Jurnal");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(writeArea.getScene() != null ? writeArea.getScene().getWindow() : null);
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return;
+        }
+
+        for (File selectedFile : selectedFiles) {
+            String absolutePath = selectedFile.getAbsolutePath();
+            selectedPhotoPaths.add(absolutePath);
+            displayNewPhotoWithDeleteButton(absolutePath);
+        }
+    }
+
+    private void displayNewPhotoWithDeleteButton(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) return;
+
+        try {
+            Image image = new Image(file.toURI().toString(), 120, 0, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(120);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+
+            // Delete Button (X)
+            Circle deleteBtn = new Circle(12);
+            deleteBtn.setFill(Color.web("#DC2626"));
+            Label deleteIcon = new Label("✕");
+            deleteIcon.setTextFill(Color.WHITE);
+            deleteIcon.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
+
+            StackPane deleteButton = new StackPane(deleteBtn, deleteIcon);
+            deleteButton.setStyle("-fx-cursor: hand;");
+            deleteButton.setOnMouseClicked(e -> {
+                selectedPhotoPaths.remove(filePath);
+                selectedImagePane.getChildren().remove((StackPane) imageView.getParent());
+            });
+
+            StackPane photoContainer = new StackPane(imageView);
+            photoContainer.setPrefSize(120, 120);
+            photoContainer.setStyle("-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);");
+
+            // Position delete button at top-left
+            StackPane.setAlignment(deleteButton, Pos.TOP_LEFT);
+            StackPane.setMargin(deleteButton, new Insets(4, 0, 0, 4));
+            photoContainer.getChildren().add(deleteButton);
+
+            selectedImagePane.getChildren().add(photoContainer);
+        } catch (Exception e) {
+            System.err.println("Error displaying photo: " + e.getMessage());
+        }
     }
 
     private void handleAddTarget() {

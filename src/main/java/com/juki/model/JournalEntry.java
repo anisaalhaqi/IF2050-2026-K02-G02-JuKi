@@ -2,6 +2,8 @@ package com.juki.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JournalEntry {
     private Integer id;
@@ -12,13 +14,13 @@ public class JournalEntry {
     private String target;
     private LocalDate date;
     private LocalTime time;
-    private Photo photo;
+    private List<Photo> photos = new ArrayList<>();
     private Integer userId;
 
     public JournalEntry() {}
 
     public JournalEntry(Integer id, String category, String title, String description, 
-                        String trigger, String target, LocalDate date, LocalTime time, Photo photo) {
+                        String trigger, String target, LocalDate date, LocalTime time, List<Photo> photos) {
         this.id = id;
         this.category = category;
         this.title = title;
@@ -27,10 +29,10 @@ public class JournalEntry {
         this.target = target;
         this.date = date;
         this.time = time;
-        this.photo = photo;
+        this.photos = photos != null ? photos : new ArrayList<>();
     }
 
-    public void createEntry(String category, String title, String description, String trigger, String target, LocalDate date, LocalTime time, Photo photo) {
+    public void createEntry(String category, String title, String description, String trigger, String target, LocalDate date, LocalTime time, List<Photo> photos) {
         this.category = category;
         this.title = title;
         this.description = description;
@@ -38,7 +40,7 @@ public class JournalEntry {
         this.target = target;
         this.date = date;
         this.time = time;
-        this.photo = photo;
+        this.photos = photos != null ? photos : new ArrayList<>();
     }
 
     public Integer getId() { return id; }
@@ -65,8 +67,8 @@ public class JournalEntry {
     public LocalTime getTime() { return time; }
     public void setTime(LocalTime time) { this.time = time; }
 
-    public Photo getPhoto() { return photo; }
-    public void setPhoto(Photo photo) { this.photo = photo; }
+    public List<Photo> getPhotos() { return photos; }
+    public void setPhotos(List<Photo> photos) { this.photos = photos != null ? photos : new ArrayList<>(); }
 
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }

@@ -41,7 +41,7 @@ public class CalendarView {
     private final EntryController entryController = new EntryController();
     private List<JournalEntry> entries;
 
-    private static final String MUTED_STYLE = "-fx-text-fill: #6d6d6d; -fx-opacity: 1;";
+    private static final String MUTED_STYLE = "-fx-text-fill: #858585; -fx-opacity: 1;";
 
     public CalendarView(User user) {
         this.currentUser = user;
@@ -135,7 +135,7 @@ public class CalendarView {
         if (targetBox == null) return;
         targetBox.getChildren().clear();
         Label targetTitle = new Label("Target Self-care"); 
-        targetTitle.setFont(Font.font("Outfit", FontWeight.MEDIUM, 25));
+        targetTitle.setFont(Font.font("Outfit", 25));
         targetTitle.setTextFill(Color.web("#292929"));
         targetBox.getChildren().add(targetTitle);
         
@@ -146,38 +146,16 @@ public class CalendarView {
             targetBox.getChildren().add(n); 
         } else {
             for (SelfCareGoal g : goals) {
-                HBox item = new HBox(16); 
-                item.setAlignment(Pos.CENTER_LEFT);
-                item.setStyle("-fx-cursor: hand;");
-                
-                Circle checkbox = new Circle(10, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); 
-                checkbox.setStroke(Color.web("#82DD55"));
-                checkbox.setStrokeWidth(1.5);
-                
-                Label lbl = new Label(g.getTitle()); 
-                lbl.setFont(Font.font("Outfit", 18));
-                lbl.setTextFill(Color.web("#292929"));
-                lbl.setWrapText(true);
-                lbl.setMaxWidth(220);
-                
+                HBox i = new HBox(16); i.setAlignment(Pos.CENTER_LEFT);
+                Circle d = new Circle(10, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); d.setStroke(Color.web("#82DD55"));
+                Label l = new Label(g.getTitle()); 
+                l.setFont(Font.font("Outfit", 18));
+                l.setTextFill(Color.web("#292929"));
                 if (g.isCompleted()) {
-                    lbl.setStyle("-fx-text-decoration: line-through;");
-                    lbl.setTextFill(Color.web("#767676"));
-                    Label checkMark = new Label("✔");
-                    checkMark.setTextFill(Color.WHITE);
-                    checkMark.setFont(Font.font("System", FontWeight.BOLD, 12));
-                    StackPane stack = new StackPane(checkbox, checkMark);
-                    item.getChildren().addAll(stack, lbl);
-                } else {
-                    item.getChildren().addAll(checkbox, lbl);
+                    l.setStyle("-fx-text-decoration: line-through;");
+                    l.setTextFill(Color.web("#767676"));
                 }
-                
-                // Toggle status on click
-                item.setOnMouseClicked(e -> {
-                    goalService.toggleGoalStatus(g);
-                });
-                
-                targetBox.getChildren().add(item);
+                i.getChildren().addAll(d, l); targetBox.getChildren().add(i);
             }
         }
     }
