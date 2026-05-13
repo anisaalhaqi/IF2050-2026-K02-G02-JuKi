@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/MainApp.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/AnalyticsController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/EntryController.java
@@ -22,3 +23,32 @@
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/view/RegistrationFormView.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/view/SearchView.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/view/VisualizerView.java
+=======
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\AnalyticsController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\EntryController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\GoalController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\MoodController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\ProfileManager.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\RegistrationFormController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\controller\SearchController.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\db\DatabaseHelper.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\MainApp.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\DailyMood.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\JournalEntry.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\Photo.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\SearchFilter.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\SelfCareGoal.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\model\User.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\service\GoalService.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\CalendarView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\DashboardView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\EntryDetailView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\EntryFormView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\EntryListView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\EntryManagerView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\GoalModal.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\ProfileView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\RegistrationFormView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\SearchView.java
+C:\Users\hp\IF2050-2026-K02-G02-JuKi\src\main\java\com\juki\view\VisualizerView.java
+>>>>>>> Stashed changes
