@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="803880f6-47bd-4e53-a2d9-db44cc33ad22" name="Changes" comment="" />
+    <list default="true" id="803880f6-47bd-4e53-a2d9-db44cc33ad22" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryFormView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryFormView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/controller/EntryController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/controller/EntryController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryDetailView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryFormView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryListView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/ProfileView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/RegistrationFormView.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,18 +28,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "anisaalhaqi"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;anisaalhaqi&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/anisaalhaqi/IF2050-2026-K02-G02-JuKi.git",
-    "accountId": "dd76a0f7-13fa-40d2-95b4-67aac9b71b49"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/anisaalhaqi/IF2050-2026-K02-G02-JuKi.git&quot;,
+    &quot;accountId&quot;: &quot;dd76a0f7-13fa-40d2-95b4-67aac9b71b49&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -44,7 +56,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "fix-integrate-all",
+    "git-widget-placeholder": "fix/journal-entry",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "to.speed.mode.migration.done": "true"

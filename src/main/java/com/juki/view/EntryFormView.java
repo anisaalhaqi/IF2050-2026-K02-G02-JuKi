@@ -26,6 +26,7 @@ public class EntryFormView {
     private ComboBox<String> catCombo;
     private TextField causeField;
     private TextArea writeArea;
+    private Button btnPost;
     private FlowPane selectedImagePane;
     private List<String> selectedPhotoPaths = new ArrayList<>();
     private User user;
@@ -112,8 +113,7 @@ public class EntryFormView {
         Region spacerRow1 = new Region();
         HBox.setHgrow(spacerRow1, Priority.ALWAYS);
 
-        Button btnPost = new Button(editingEntry != null ? "Save Changes" : "Post");
-        btnPost.setStyle("-fx-background-color: #FFD54F; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 8px 30px; -fx-cursor: hand;");
+        btnPost = new Button(editingEntry != null ? "Save Changes" : "Post");
         btnPost.setOnAction(e -> handlePost());
 
         // Dummy Profile Picture menggunakan Circle
@@ -216,10 +216,17 @@ public class EntryFormView {
 
         root.setCenter(scrollPane);
         
+        // Add listeners for validation
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> updatePostButtonState());
+        writeArea.textProperty().addListener((obs, oldVal, newVal) -> updatePostButtonState());
+
         // Pre-fill data jika mode edit
         if (editingEntry != null) {
             preFillFormData();
         }
+
+        // Initial validation check
+        updatePostButtonState();
 
         return root;
     }
@@ -402,5 +409,19 @@ public class EntryFormView {
 
     private void handleAddTarget() {
         System.out.println("Memunculkan modal untuk menambahkan target baru...");
+    }
+
+    private void updatePostButtonState() {
+        boolean isTitleEmpty = titleField.getText() == null || titleField.getText().trim().isEmpty();
+        boolean isStoryEmpty = writeArea.getText() == null || writeArea.getText().trim().isEmpty();
+        
+        boolean isDisabled = isTitleEmpty || isStoryEmpty;
+        btnPost.setDisable(isDisabled);
+        
+        if (isDisabled) {
+            btnPost.setStyle("-fx-background-color: #FFF1C1; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 8px 30px; -fx-cursor: default;");
+        } else {
+            btnPost.setStyle("-fx-background-color: #FFD54F; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 8px 30px; -fx-cursor: hand;");
+        }
     }
 }
