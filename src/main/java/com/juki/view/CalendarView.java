@@ -228,9 +228,34 @@ public class CalendarView {
 
                 List<SelfCareGoal> goals = goalService.getGoalsForDate(cellDate);
                 if (!goals.isEmpty()) {
-                    HBox h = new HBox(4); h.setAlignment(Pos.CENTER);
-                    Circle dot = new Circle(5, goals.stream().allMatch(SelfCareGoal::isCompleted) ? Color.web("#82DD55") : Color.web("#D6D6D6"));
-                    h.getChildren().add(dot); cell.getChildren().add(h);
+                    if (goals.stream().allMatch(SelfCareGoal::isCompleted)) {
+                        cell.setStyle("-fx-background-color: #FFFAC1; -fx-border-color: #D6D6D6; -fx-border-width: 0 1px 1px " + (col == 0 ? "1px" : "0") + "; -fx-padding: 8px; -fx-cursor: hand;");
+                    }
+                    
+                    int count = 0;
+                    for (SelfCareGoal g : goals) {
+                        if (count < 3) {
+                            HBox h = new HBox(4); h.setAlignment(Pos.CENTER_LEFT);
+                            Circle dot = new Circle(4);
+                            dot.setFill(g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT);
+                            dot.setStroke(Color.web("#82DD55"));
+                            dot.setStrokeWidth(1.5);
+                            
+                            Label lbl = new Label(g.getTitle());
+                            lbl.setFont(Font.font("Outfit", 11));
+                            lbl.setTextFill(Color.web("#292929"));
+                            
+                            h.getChildren().addAll(dot, lbl);
+                            cell.getChildren().add(h);
+                        } else {
+                            Label more = new Label("+ " + (goals.size() - 3) + " lainnya");
+                            more.setFont(Font.font("Outfit", 9));
+                            more.setTextFill(Color.web("#767676"));
+                            cell.getChildren().add(more);
+                            break;
+                        }
+                        count++;
+                    }
                 }
 
                 cell.setOnMouseClicked(e -> {
