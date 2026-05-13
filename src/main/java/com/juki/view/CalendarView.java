@@ -55,8 +55,12 @@ public class CalendarView {
         goalService.getGoalsCache().addListener((MapChangeListener<LocalDate, List<SelfCareGoal>>) change -> {
             Platform.runLater(() -> {
                 if (grid != null) {
+                    // Only update sidebar if the change is for the selected date
+                    if (change.getKey().equals(selectedDate)) {
+                        updateSidebarTargets();
+                    }
+                    // Calendar grid always needs re-render to update dots
                     renderCalendar();
-                    updateSidebarTargets();
                 }
             });
         });
