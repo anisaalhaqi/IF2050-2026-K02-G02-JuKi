@@ -205,32 +205,8 @@ public class EntryFormView {
         
         row5.getChildren().addAll(imageBox, writeArea);
 
-        // Baris 6: Card Target Hari Ini
-        VBox row6 = new VBox(15);
-        row6.setStyle("-fx-border-color: #E0E0E0; -fx-border-radius: 10px; -fx-padding: 20px;");
-        
-        HBox targetTop = new HBox(15);
-        targetTop.setAlignment(Pos.CENTER_LEFT);
-        Circle targetCircle = new Circle(22, Color.web("#F5F5F5"));
-        
-        VBox targetTexts = new VBox(5);
-        Label targetTitle = new Label("Target Hari Ini");
-        targetTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
-        Label targetDesc = new Label("Kamu belum ada target apapun, nih!");
-        targetDesc.setTextFill(Color.web("#9E9E9E"));
-        targetTexts.getChildren().addAll(targetTitle, targetDesc);
-        
-        targetTop.getChildren().addAll(targetCircle, targetTexts);
-
-        Label btnAddTarget = new Label("+ Tambah Target");
-        btnAddTarget.setTextFill(Color.web("#9E9E9E"));
-        btnAddTarget.setStyle("-fx-cursor: hand; -fx-font-weight: bold;");
-        btnAddTarget.setOnMouseClicked(e -> handleAddTarget());
-
-        row6.getChildren().addAll(targetTop, btnAddTarget);
-
         // Susun semua komponen di dalam container
-        content.getChildren().addAll(row1, titleField, row3, row4, row5, row6);
+        content.getChildren().addAll(row1, titleField, row3, row4, row5);
 
         // Bungkus content dengan ScrollPane
         ScrollPane scrollPane = new ScrollPane(content);

@@ -168,13 +168,6 @@ public class EntryDetailView {
         photoContainer.setHgap(16);
         photoContainer.setVgap(16);
 
-        targetCard.setPadding(new Insets(24));
-        targetCard.setStyle("-fx-background-color: white; -fx-border-color: #E5E5E5; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-        Label targetHeader = new Label("Target Hari Ini");
-        targetHeader.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 20));
-        targetHeader.setTextFill(Color.web("#000000"));
-        targetCard.getChildren().add(targetHeader);
-
         // 4. SUSUN URUTAN ELEMEN DARI ATAS KE BAWAH
         mainContainer.getChildren().addAll(
             headerImageView,
@@ -185,8 +178,7 @@ public class EntryDetailView {
             triggerBox,
             separator,
             descriptionLabel,
-            photoContainer,
-            targetCard
+            photoContainer
         );
 
         // 5. WRAPPER AGAR KONTEN KURUS BERADA DI TENGAH LAYAR
@@ -327,22 +319,6 @@ public class EntryDetailView {
             headerImageView.setVisible(false);
         }
 
-        targetCard.getChildren().removeIf(node -> node instanceof Label && node != targetCard.getChildren().get(0));
-        List<String> targets = parseTargets(entry.getTarget());
-        if (targets.isEmpty()) {
-            Label emptyLabel = new Label("Tidak ada target saat ini.");
-            emptyLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 16));
-            emptyLabel.setTextFill(Color.web("#333333"));
-            targetCard.getChildren().add(emptyLabel);
-        } else {
-            for (String target : targets) {
-                Label item = new Label("• " + target);
-                item.setFont(Font.font("Outfit", FontWeight.NORMAL, 16));
-                item.setTextFill(Color.web("#333333"));
-                item.setWrapText(true);
-                targetCard.getChildren().add(item);
-            }
-        }
     }
 
     private List<String> parseTargets(String targetText) {
