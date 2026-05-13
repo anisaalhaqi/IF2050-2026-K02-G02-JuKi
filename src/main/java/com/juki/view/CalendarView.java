@@ -51,19 +51,7 @@ public class CalendarView {
         
         goalService.setCurrentUser(user);
 
-        // UI Update Listener
-        goalService.getGoalsCache().addListener((MapChangeListener<LocalDate, List<SelfCareGoal>>) change -> {
-            Platform.runLater(() -> {
-                if (grid != null) {
-                    // Only update sidebar if the change is for the selected date
-                    if (change.getKey().equals(selectedDate)) {
-                        updateSidebarTargets();
-                    }
-                    // Calendar grid always needs re-render to update dots
-                    renderCalendar();
-                }
-            });
-        });
+        // UI Update Listener removed to prevent aggressive re-rendering
     }
 
     public HBox getView() {
@@ -171,7 +159,22 @@ public class CalendarView {
                 
                 // Add event listener to toggle status
                 i.setOnMouseClicked(e -> {
-                    goalService.toggleGoalStatus(g);
+                    // Update model state silently
+                    g.setCompleted(!g.isCompleted());
+                    
+                    // Update DB directly
+                    com.juki.controller.GoalController gc = new com.juki.controller.GoalController();
+                    gc.updateGoalStatus(g.getId(), g.isCompleted(), currentUser.getId());
+                    
+                    // Update UI component directly without full refresh
+                    d.setFill(g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT);
+                    if (g.isCompleted()) {
+                        l.setStyle("-fx-text-decoration: line-through;");
+                        l.setTextFill(Color.web("#767676"));
+                    } else {
+                        l.setStyle("");
+                        l.setTextFill(Color.web("#292929"));
+                    }
                 });
                 
                 targetBox.getChildren().add(i);
@@ -249,7 +252,13 @@ public class CalendarView {
 
         StackPane backdrop = new StackPane(); 
         backdrop.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
-        backdrop.setOnMouseClicked(e -> { if (e.getTarget() == backdrop) stage.close(); });
+        backdrop.setOnMouseClicked(e -> { 
+            if (e.getTarget() == backdrop) {
+                stage.close();
+                renderCalendar();
+                updateSidebarTargets();
+            }
+        });
         
         VBox rootCard = new VBox(20); 
         rootCard.getStyleClass().add("modal-card");
@@ -309,11 +318,22 @@ public class CalendarView {
                 
                 Circle status = new Circle(12, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); 
                 status.setStroke(Color.web("#82DD55"));
+                status.setStrokeWidth(2);
                 status.setStyle("-fx-cursor: hand;");
                 status.setOnMouseClicked(e -> { 
-                    goalService.toggleGoalStatus(g); 
-                    stage.close(); 
-                    showDetailModal(date); 
+                    goalService.toggleGoalStatus(g);
+                    
+                    // In-place UI update
+                    g.setCompleted(!g.isCompleted());
+                    status.setFill(g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT);
+                    
+                    if (g.isCompleted()) {
+                        lbl.setStyle("-fx-text-decoration: line-through;");
+                        lbl.setTextFill(Color.web("#767676"));
+                    } else {
+                        lbl.setStyle("");
+                        lbl.setTextFill(Color.web("#292929"));
+                    }
                 });
                 
                 item.getChildren().addAll(lbl, spacerRight, status); listContainer.getChildren().add(item);
@@ -330,7 +350,11 @@ public class CalendarView {
         
         Button btnClose = new Button("Tutup");
         btnClose.setStyle("-fx-background-color: #FFE341; -fx-background-radius: 10px; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 25;");
-        btnClose.setOnAction(e -> stage.close());
+        btnClose.setOnAction(e -> {
+            stage.close();
+            renderCalendar();
+            updateSidebarTargets();
+        });
         HBox btnRow = new HBox(); btnRow.setAlignment(Pos.CENTER_RIGHT); btnRow.getChildren().add(btnClose);
 
         rootCard.getChildren().addAll(header, scrollPane, btnRow); 
