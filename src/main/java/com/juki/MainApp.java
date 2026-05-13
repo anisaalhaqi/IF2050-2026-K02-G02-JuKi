@@ -3,11 +3,14 @@ package com.juki;
 import com.juki.controller.RegistrationFormController;
 import com.juki.controller.SearchController;
 import com.juki.db.DatabaseHelper;
+import com.juki.controller.EntryController;
+import com.juki.model.JournalEntry;
 import com.juki.model.JournalEntry;
 import com.juki.model.User;
 import com.juki.view.DashboardView;
 import java.util.List;
 import com.juki.view.CalendarView;
+import com.juki.view.EntryDetailView;
 import com.juki.view.EntryFormView;
 import com.juki.view.EntryListView;
 import com.juki.view.RegistrationFormView;
@@ -18,6 +21,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import java.util.function.Consumer;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -56,7 +67,7 @@ public class MainApp extends Application {
     private void showMainDashboard(Stage primaryStage, User user) {
         BorderPane root = new BorderPane();
         SearchController searchController = new SearchController();
-        
+
         // Top Navigation Bar
         HBox navBar = new HBox(20);
         navBar.setStyle("-fx-background-color: #A114AC; -fx-padding: 42px 100px;");
@@ -95,12 +106,12 @@ public class MainApp extends Application {
 
         searchField.setOnAction(e -> performSearch.run());
         searchButton.setOnAction(e -> performSearch.run());
-        
+
         HBox searchBox = new HBox(10, searchField, searchButton);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setVisible(false);
         searchBox.setManaged(false);
-        
+
         // Navigation Links Section
         HBox navLinks = new HBox(64);
         navLinks.setAlignment(Pos.CENTER_LEFT);
@@ -266,6 +277,53 @@ public class MainApp extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
+    }
+
+    private void showEntryList(BorderPane root, User user) {
+        EntryListView entryListView = new EntryListView(user, id -> showEntryDetail(root, user, id));
+        root.setCenter(entryListView.getView());
+    }
+
+    private void showEntryDetail(BorderPane root, User user, int entryId) {
+        EntryController entryController = new EntryController();
+        JournalEntry entry = entryController.getEntryDetail(entryId);
+        if (entry == null) {
+            System.err.println("Jurnal tidak ditemukan: " + entryId);
+            return;
+        }
+        EntryDetailView detailView = new EntryDetailView();
+
+        // onEditAction: buka form edit
+        Consumer<JournalEntry> onEditAction = (JournalEntry journalEntry) -> {
+            showEntryForm(root, user, journalEntry); // Pass journalEntry untuk edit mode
+        };
+
+        // onDeleteAction: hapus entry dan kembali ke list
+        Runnable onDeleteAction = () -> {
+            entryController.deleteEntry(entryId);
+            showEntryList(root, user); // Kembali ke list setelah hapus
+        };
+
+        root.setCenter(detailView.getView(entry, user.getFullName(), () -> showEntryList(root, user), onEditAction, onDeleteAction));
+    }
+
+    private void showEntryForm(BorderPane root, User user, JournalEntry entryToEdit) {
+        EntryFormView entryFormView;
+        if (entryToEdit != null) {
+            // Edit mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After save changes, kembali ke detail view dengan data terbaru
+                showEntryDetail(root, user, entryToEdit.getId());
+            }, entryToEdit);
+        } else {
+            // New entry mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After post, kembali ke list
+                showEntryList(root, user);
+            });
+        }
+
+        root.setCenter(entryFormView.getView().getCenter());
     }
 
     public static void main(String[] args) {
