@@ -21,6 +21,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -100,11 +101,100 @@ public class MainApp extends Application {
                 return;
             }
             List<JournalEntry> results = searchController.searchEntries(new com.juki.model.SearchFilter(null, keyword, null), user.getId());
-            
-            EntryListView searchResultView = new EntryListView(user, id -> showEntryDetail(root, user, id));
-            searchResultView.displayEntryList(results);
-            
-            root.setCenter(searchResultView.getView());
+
+            // Build new search result page — same style as journal list
+            VBox searchPage = new VBox(32);
+            searchPage.setPadding(new Insets(50, 100, 50, 100));
+            searchPage.setStyle("-fx-background-color: #FDF3FF;");
+
+            // "Hasil untuk [keyword]" header — same font size as journal page title
+            HBox resultHeader = new HBox(16);
+            resultHeader.setAlignment(Pos.CENTER_LEFT);
+            Label hasilLabel = new Label("Hasil untuk");
+            hasilLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 40));
+            hasilLabel.setTextFill(Color.web("#8D1395"));
+            Label keywordLabel = new Label("\"" + keyword + "\"");
+            keywordLabel.setFont(Font.font("Outfit", FontWeight.BOLD, 40));
+            keywordLabel.setTextFill(Color.web("#292929"));
+            resultHeader.getChildren().addAll(hasilLabel, keywordLabel);
+
+            // Result cards — exactly same style as EntryListView cards
+            VBox cardList = new VBox(20);
+            if (results.isEmpty()) {
+                Label emptyLbl = new Label("Tidak ada jurnal yang cocok dengan pencarian ini.");
+                emptyLbl.setFont(Font.font("Outfit", 18));
+                emptyLbl.setTextFill(Color.GRAY);
+                cardList.getChildren().add(emptyLbl);
+            } else {
+                for (JournalEntry entry : results) {
+                    HBox card = new HBox();
+                    card.setStyle("-fx-background-color: white; -fx-background-radius: 20px; -fx-border-color: #D6D6D6; -fx-border-width: 1px; -fx-border-radius: 20px; -fx-padding: 32px; -fx-cursor: hand;");
+                    card.setAlignment(Pos.CENTER_LEFT);
+
+                    VBox textContent = new VBox(24);
+                    HBox.setHgrow(textContent, Priority.ALWAYS);
+
+                    Label titleLbl = new Label(entry.getTitle() != null ? entry.getTitle() : "Tanpa Judul");
+                    titleLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 36));
+                    titleLbl.setTextFill(Color.BLACK);
+                    titleLbl.setWrapText(true);
+
+                    Label descLbl = new Label(entry.getDescription() != null ? entry.getDescription() : "");
+                    descLbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 18));
+                    descLbl.setTextFill(Color.web("#434343"));
+                    descLbl.setWrapText(true);
+
+                    HBox metaRow = new HBox(16);
+                    metaRow.setAlignment(Pos.CENTER_LEFT);
+                    String dateStr = entry.getDate() != null ?
+                        entry.getDate().format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", java.util.Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
+                    if (entry.getTime() != null) {
+                        dateStr += " " + entry.getTime().format(java.time.format.DateTimeFormatter.ofPattern("HH.mm"));
+                    }
+                    Label dateLbl = new Label(dateStr);
+                    dateLbl.setFont(Font.font("Outfit", FontWeight.LIGHT, 16));
+                    dateLbl.setTextFill(Color.web("#767676"));
+                    metaRow.getChildren().add(dateLbl);
+                    if (entry.getCategory() != null && !entry.getCategory().isEmpty()) {
+                        Label tag = new Label(entry.getCategory());
+                        tag.setStyle("-fx-background-color: #FFFAC1; -fx-border-color: #A66502; -fx-border-width: 0.56px; -fx-border-radius: 55.56px; -fx-background-radius: 55.56px; -fx-padding: 4px 17px; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-font-weight: 300;");
+                        metaRow.getChildren().add(tag);
+                    }
+
+                    textContent.getChildren().addAll(titleLbl, descLbl, metaRow);
+
+                    // Thumbnail if photo exists
+                    if (entry.getPhotos() != null && !entry.getPhotos().isEmpty()) {
+                        String photoPath = entry.getPhotos().get(0).getFilePath();
+                        if (photoPath != null && !photoPath.isEmpty()) {
+                            try {
+                                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                                    new javafx.scene.image.Image("file:" + photoPath));
+                                iv.setFitWidth(220); iv.setFitHeight(160); iv.setPreserveRatio(false);
+                                VBox thumb = new VBox(iv);
+                                thumb.setPrefSize(220, 160); thumb.setMinSize(220, 160); thumb.setMaxSize(220, 160);
+                                thumb.setStyle("-fx-background-radius: 16px; -fx-padding: 0 0 0 32px;");
+                                card.getChildren().addAll(textContent, thumb);
+                            } catch (Exception ex) {
+                                card.getChildren().add(textContent);
+                            }
+                        } else {
+                            card.getChildren().add(textContent);
+                        }
+                    } else {
+                        card.getChildren().add(textContent);
+                    }
+
+                    card.setOnMouseClicked(e -> showEntryDetail(root, user, entry.getId()));
+                    cardList.getChildren().add(card);
+                }
+            }
+
+            searchPage.getChildren().addAll(resultHeader, cardList);
+            ScrollPane sp = new ScrollPane(searchPage);
+            sp.setFitToWidth(true);
+            sp.setStyle("-fx-background-color: transparent; -fx-background: #FDF3FF;");
+            root.setCenter(sp);
         };
 
         searchField.setOnAction(e -> performSearch.run());
@@ -147,6 +237,8 @@ public class MainApp extends Application {
             System.err.println("Could not load action icon: " + e.getMessage());
         }
         btnAction.setStyle("-fx-background-color: white; -fx-text-fill: #A114AC; -fx-font-family: 'Outfit'; -fx-font-size: 25px; -fx-background-radius: 10px; -fx-padding: 16px 32px; -fx-cursor: hand;");
+        btnAction.setPrefWidth(320);
+        btnAction.setMinWidth(320);
         
         navLinks.getChildren().addAll(navBeranda, navJurnal, navKalendar, btnAction);
 

@@ -3,6 +3,7 @@ package com.juki.view;
 import com.juki.controller.EntryController;
 import com.juki.controller.GoalController;
 import com.juki.controller.MoodController;
+import com.juki.view.EntryDetailView;
 import com.juki.model.JournalEntry;
 import com.juki.model.SelfCareGoal;
 import com.juki.model.DailyMood;
@@ -141,7 +142,7 @@ public class DashboardView {
         for (int i = 6; i >= 0; i--) {
             LocalDate d = today.minusDays(i);
             VBox dayCol = new VBox(4); dayCol.setAlignment(Pos.CENTER);
-            StackPane dotPane = new StackPane(); dotPane.setStyle("-fx-cursor: hand;");
+            StackPane dotPane = new StackPane();
             Circle dot = new Circle(12);
             if (goalService.isDayCompleted(d)) {
                 dot.setFill(Color.web("#82DD55"));
@@ -151,7 +152,6 @@ public class DashboardView {
                 dot.setFill(Color.TRANSPARENT); dot.setStroke(Color.web("#82DD55")); dot.setStrokeWidth(1.6);
                 dotPane.getChildren().add(dot);
             }
-            dotPane.setOnMouseClicked(e -> goalService.toggleAllForDate(d));
             Label dayChar = new Label(days[d.getDayOfWeek().getValue() % 7]);
             dayChar.setFont(Font.font("Plus Jakarta Sans", FontWeight.SEMI_BOLD, 16));
             dayCol.getChildren().addAll(dotPane, dayChar);
@@ -456,11 +456,29 @@ public class DashboardView {
         } else {
             for (int i = 0; i < Math.min(entries.size(), 2); i++) {
                 JournalEntry entry = entries.get(i);
-                cards.getChildren().add(createJournalCard(
-                    entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("id", "ID"))), 
-                    entry.getTitle(), 
+                VBox card = createJournalCard(
+                    entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("id", "ID"))),
+                    entry.getTitle(),
                     entry.getDescription()
-                ));
+                );
+                // Make card clickable — navigate to entry detail
+                final int entryId = entry.getId();
+                card.setStyle(card.getStyle() + " -fx-cursor: hand;");
+                card.setOnMouseClicked(e -> {
+                    EntryDetailView detailView = new EntryDetailView();
+                    EntryController ec = new EntryController();
+                    JournalEntry full = ec.getEntryDetail(entryId);
+                    if (full != null && mainRoot != null) {
+                        mainRoot.setCenter(detailView.getView(
+                            full,
+                            currentUser.getFullName(),
+                            () -> mainRoot.setCenter(getDashboardView(currentUser, mainRoot)),
+                            je -> {},
+                            () -> mainRoot.setCenter(getDashboardView(currentUser, mainRoot))
+                        ));
+                    }
+                });
+                cards.getChildren().add(card);
             }
         }
 
@@ -527,7 +545,12 @@ public class DashboardView {
             list.getChildren().add(new Label("Belum ada target hari ini."));
         } else {
             for (SelfCareGoal goal : goals) {
-                list.getChildren().add(createTargetItem(goal.getTitle(), goal.isCompleted()));
+                HBox item = createTargetItem(goal.getTitle(), goal.isCompleted());
+                item.setStyle("-fx-cursor: hand;");
+                item.setOnMouseClicked(e -> {
+                    goalService.toggleGoalStatus(goal);
+                });
+                list.getChildren().add(item);
             }
         }
 
