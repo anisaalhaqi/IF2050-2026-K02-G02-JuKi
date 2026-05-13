@@ -90,15 +90,36 @@ public class EntryListView {
     private void showDatePickerModal() {
         Stage modal = new Stage();
         modal.initModality(Modality.APPLICATION_MODAL);
-        modal.setTitle("Pilih Tanggal");
+        modal.initStyle(javafx.stage.StageStyle.TRANSPARENT);
 
         YearMonth[] monthShown = new YearMonth[]{selectedDateFilter != null ? YearMonth.from(selectedDateFilter) : YearMonth.now()};
         LocalDate[] activeDate = new LocalDate[]{selectedDateFilter != null ? selectedDateFilter : LocalDate.now()};
 
-        VBox modalRoot = new VBox(52);
+        // Backdrop (dimmed overlay, click outside to close)
+        StackPane backdrop = new StackPane();
+        backdrop.setStyle("-fx-background-color: rgba(0,0,0,0.4);");
+        backdrop.setPrefSize(1920, 1080);
+        backdrop.setOnMouseClicked(e -> { if (e.getTarget() == backdrop) modal.close(); });
+
+        VBox modalRoot = new VBox(24);
         modalRoot.setPadding(new Insets(39.2));
-        modalRoot.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-width: 1.4; -fx-border-radius: 28; -fx-background-radius: 28;");
+        modalRoot.setStyle("-fx-background-color: white; -fx-background-radius: 34.78px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 24, 0, 0, 4);");
         modalRoot.setPrefWidth(620.2);
+        modalRoot.setMaxHeight(Region.USE_PREF_SIZE);
+
+        // HEADER: title + X button
+        HBox modalHeader = new HBox();
+        modalHeader.setAlignment(Pos.CENTER_LEFT);
+        Label modalTitle = new Label("Pilih Tanggal");
+        modalTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
+        modalTitle.setTextFill(Color.web("#292929"));
+        Region titleSpacer = new Region(); HBox.setHgrow(titleSpacer, Priority.ALWAYS);
+        Button btnClose = new Button("✕");
+        btnClose.setStyle("-fx-background-color: transparent; -fx-text-fill: #767676; -fx-font-size: 20px; -fx-cursor: hand;");
+        btnClose.setOnAction(e -> modal.close());
+        modalHeader.getChildren().addAll(modalTitle, titleSpacer, btnClose);
+
+        Separator headerDivider = new Separator();
 
         Label monthLabel = new Label();
         monthLabel.setTextFill(Color.web("#292929"));
@@ -203,17 +224,21 @@ public class EntryListView {
         HBox actionRow = new HBox(20, clearButton, applyButton);
         actionRow.setAlignment(Pos.CENTER);
 
-        modalRoot.getChildren().addAll(monthHeader, weekdayRow, dateGrid, actionRow);
+        modalRoot.getChildren().addAll(modalHeader, headerDivider, monthHeader, weekdayRow, dateGrid, actionRow);
         rebuildCalendar[0].run();
 
-        modal.setScene(new javafx.scene.Scene(modalRoot));
-        modal.show();
+        backdrop.getChildren().add(modalRoot); StackPane.setAlignment(modalRoot, Pos.CENTER);
+        javafx.scene.Scene scene = new javafx.scene.Scene(backdrop);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        modal.setScene(scene);
+        modal.show(); modal.centerOnScreen();
     }
 
     public ScrollPane getView() {
         ScrollPane scrollPane = new ScrollPane(view);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #FDF3FF;");
+        view.setStyle("-fx-background-color: #FDF3FF;");
         return scrollPane;
     }
 
@@ -229,31 +254,67 @@ public class EntryListView {
     public void displayEntryList(List<JournalEntry> entries) {
         listContainer.getChildren().clear();
         for (JournalEntry entry : entries) {
-            VBox card = new VBox(10);
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 15px; -fx-padding: 25px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-cursor: hand;");
-            
-            // Format tanggal lokal Indonesia
-            String dateStr = entry.getDate() != null ? 
-                entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
-            
-            Label dateLbl = new Label(dateStr + " • " + (entry.getCategory() != null ? entry.getCategory() : "Umum"));
-            dateLbl.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
-            dateLbl.setTextFill(Color.GRAY);
+            HBox card = new HBox();
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 20px; -fx-border-color: #D6D6D6; -fx-border-width: 1px; -fx-border-radius: 20px; -fx-padding: 32px; -fx-cursor: hand;");
+            card.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            VBox textContent = new VBox(24);
+            HBox.setHgrow(textContent, Priority.ALWAYS);
 
             Label titleLbl = new Label(entry.getTitle() != null ? entry.getTitle() : "Tanpa Judul");
-            titleLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
-            titleLbl.setTextFill(Color.web("#74400F"));
+            titleLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 36));
+            titleLbl.setTextFill(Color.BLACK);
             titleLbl.setWrapText(true);
 
             Label descLbl = new Label(entry.getDescription() != null ? entry.getDescription() : "");
-            descLbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 20));
-            descLbl.setTextFill(Color.BLACK);
+            descLbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 18));
+            descLbl.setTextFill(Color.web("#434343"));
             descLbl.setWrapText(true);
-            descLbl.setMaxWidth(480);
 
-            card.getChildren().addAll(dateLbl, titleLbl, descLbl);
+            HBox metaRow = new HBox(16);
+            metaRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            String dateStr = entry.getDate() != null ?
+                entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
+            if (entry.getTime() != null) {
+                dateStr += " " + entry.getTime().format(java.time.format.DateTimeFormatter.ofPattern("HH.mm"));
+            }
+            Label dateLbl = new Label(dateStr);
+            dateLbl.setFont(Font.font("Outfit", FontWeight.LIGHT, 16));
+            dateLbl.setTextFill(Color.web("#767676"));
+
+            metaRow.getChildren().add(dateLbl);
+            if (entry.getCategory() != null && !entry.getCategory().isEmpty()) {
+                Label tag = new Label(entry.getCategory());
+                tag.setStyle("-fx-background-color: #FFFAC1; -fx-border-color: #A66502; -fx-border-width: 0.56px; -fx-border-radius: 55.56px; -fx-background-radius: 55.56px; -fx-padding: 4px 17px; -fx-font-family: 'Outfit'; -fx-font-size: 14px; -fx-font-weight: 300;");
+                metaRow.getChildren().add(tag);
+            }
+
+            textContent.getChildren().addAll(titleLbl, descLbl, metaRow);
+
+            // Thumbnail (if photo exists)
+            if (entry.getPhotos() != null && !entry.getPhotos().isEmpty()) {
+                String photoPath = entry.getPhotos().get(0).getFilePath();
+                if (photoPath != null && !photoPath.isEmpty()) {
+                    try {
+                        javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                            new javafx.scene.image.Image("file:" + photoPath));
+                        iv.setFitWidth(220); iv.setFitHeight(160); iv.setPreserveRatio(false);
+                        VBox thumb = new VBox(iv);
+                        thumb.setStyle("-fx-background-radius: 16px;");
+                        thumb.setPrefSize(220, 160); thumb.setMinSize(220, 160); thumb.setMaxSize(220, 160);
+                        card.getChildren().addAll(textContent, thumb);
+                    } catch (Exception ex) {
+                        card.getChildren().add(textContent);
+                    }
+                } else {
+                    card.getChildren().add(textContent);
+                }
+            } else {
+                card.getChildren().add(textContent);
+            }
+
             card.setOnMouseClicked(e -> selectEntry(entry.getId()));
-
             listContainer.getChildren().add(card);
         }
     }
