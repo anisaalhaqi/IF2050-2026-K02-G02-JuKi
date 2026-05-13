@@ -41,7 +41,7 @@ public class CalendarView {
     private final EntryController entryController = new EntryController();
     private List<JournalEntry> entries;
 
-    private static final String MUTED_STYLE = "-fx-text-fill: #A5A5A5; -fx-opacity: 0.8;";
+    private static final String MUTED_STYLE = "-fx-text-fill: #858585; -fx-opacity: 1;";
 
     public CalendarView(User user) {
         this.currentUser = user;
