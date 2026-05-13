@@ -100,7 +100,7 @@ public class MainApp extends Application {
                 return;
             }
             List<JournalEntry> results = searchController.searchEntries(new com.juki.model.SearchFilter(null, keyword, null), user.getId());
-            EntryListView searchResultView = new EntryListView(user, results);
+            EntryListView searchResultView = new EntryListView(user, results, id -> showEntryDetail(root, user, id));
             root.setCenter(searchResultView.getView());
         };
 
@@ -219,8 +219,7 @@ public class MainApp extends Application {
             searchBox.setVisible(true);
             searchBox.setManaged(true);
             updateActionButton.accept("Tulis Jurnal", "img/icons/notes.png");
-            EntryListView entryListView = new EntryListView(user);
-            root.setCenter(entryListView.getView());
+            showEntryList(root, user);
         });
         
         navKalendar.setOnMouseClicked(e -> {
@@ -250,8 +249,7 @@ public class MainApp extends Application {
                     navKalendar.setFont(Font.font("Outfit", FontWeight.NORMAL, 25));
                     searchBox.setVisible(true);
                     searchBox.setManaged(true);
-                    EntryListView entryListView = new EntryListView(user);
-                    root.setCenter(entryListView.getView());
+                    showEntryList(root, user);
                 });
                 root.setCenter(entryFormView.getView().getCenter());
             } else {

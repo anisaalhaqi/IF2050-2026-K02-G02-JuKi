@@ -25,6 +25,7 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class EntryListView {
     protected EntryController controller;
@@ -33,12 +34,22 @@ public class EntryListView {
     private User user;
     private List<JournalEntry> currentEntries;
     private LocalDate selectedDateFilter = null;
+    private Consumer<Integer> onEntrySelected;
 
     public EntryListView(User user) {
-        this(user, null);
+        this(user, null, null);
+    }
+
+    public EntryListView(User user, Consumer<Integer> onEntrySelected) {
+        this(user, null, onEntrySelected);
     }
 
     public EntryListView(User user, List<JournalEntry> entriesToDisplay) {
+        this(user, entriesToDisplay, null);
+    }
+
+    public EntryListView(User user, List<JournalEntry> entriesToDisplay, Consumer<Integer> onEntrySelected) {
+        this.onEntrySelected = onEntrySelected;
         controller = new EntryController();
         this.user = user;
         view = new VBox(30);
@@ -271,6 +282,10 @@ public class EntryListView {
     }
 
     public void selectEntry(Integer id) {
-        System.out.println("Membuka detail jurnal dengan ID: " + id);
+        if (onEntrySelected != null) {
+            onEntrySelected.accept(id);
+        } else {
+            System.out.println("Membuka detail jurnal dengan ID: " + id);
+        }
     }
 }
