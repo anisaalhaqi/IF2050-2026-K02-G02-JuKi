@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class EntryDetailView {
 
@@ -59,16 +60,27 @@ public class EntryDetailView {
     private final VBox targetCard = new VBox(14);
     
     private final ImageView headerImageView = new ImageView();
+    
+    private JournalEntry currentEntry;
+    private Consumer<JournalEntry> onEditAction;
+    private Runnable onDeleteAction;
 
     public BorderPane getView(JournalEntry entry) {
-        return getView(entry, null, null);
+        return getView(entry, null, null, null, null);
     }
 
     public BorderPane getView(JournalEntry entry, Runnable backAction) {
-        return getView(entry, null, backAction);
+        return getView(entry, null, backAction, null, null);
     }
 
     public BorderPane getView(JournalEntry entry, String userName, Runnable backAction) {
+        return getView(entry, userName, backAction, null, null);
+    }
+
+    public BorderPane getView(JournalEntry entry, String userName, Runnable backAction, Consumer<JournalEntry> onEditAction, Runnable onDeleteAction) {
+        this.currentEntry = entry;
+        this.onEditAction = onEditAction;
+        this.onDeleteAction = onDeleteAction;
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: white;");
 
@@ -117,14 +129,16 @@ public class EntryDetailView {
         dateTimeLabel.setTextFill(Color.web("#757575"));
         
         try {
-            dotsIcon.setImage(new Image("file:img/icons/dots.png"));
-            dotsIcon.setFitWidth(24);
+            dotsIcon.setImage(new Image("file:img/icons/more.png"));
+            dotsIcon.setFitWidth(36);
+            dotsIcon.setFitHeight(36);
             dotsIcon.setPreserveRatio(true);
             dotsIcon.setStyle("-fx-cursor: hand;");
+            dotsIcon.setOnMouseClicked(e -> showContextMenu(dotsIcon, mainContainer));
         } catch (Exception e) {}
         
         Region profileSpacer = new Region();
-        profileSpacer.setPrefWidth(12);
+        profileSpacer.setPrefWidth(3);
         profileBox.getChildren().addAll(profilePhoto, authorNameLabel, dateTimeLabel, profileSpacer, dotsIcon);
 
         categoryLabel.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 16));
@@ -411,5 +425,153 @@ public class EntryDetailView {
         ftIn.play();
 
         lightboxStage.show();
+    }
+    
+    // ==========================================
+    // CONTEXT MENU - EDIT/HAPUS JURNAL
+    // ==========================================
+    private void showContextMenu(ImageView iconView, VBox mainContainer) {
+        VBox menuBox = new VBox(0);
+        menuBox.setStyle("-fx-background-color: white; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 3);");
+        
+        Label editOption = new Label("Edit Jurnal");
+        editOption.setFont(Font.font("Outfit", FontWeight.MEDIUM, 14));
+        editOption.setTextFill(Color.web("#333333"));
+        editOption.setStyle("-fx-padding: 12 16; -fx-cursor: hand;");
+        editOption.setOnMouseEntered(e -> editOption.setStyle("-fx-padding: 12 16; -fx-background-color: #F5F5F5; -fx-cursor: hand;"));
+        editOption.setOnMouseExited(e -> editOption.setStyle("-fx-padding: 12 16; -fx-background-color: white; -fx-cursor: hand;"));
+        editOption.setOnMouseClicked(e -> {
+            if (onEditAction != null) {
+                onEditAction.accept(currentEntry);
+            }
+        });
+        
+        Label deleteOption = new Label("Hapus Jurnal");
+        deleteOption.setFont(Font.font("Outfit", FontWeight.MEDIUM, 14));
+        deleteOption.setTextFill(Color.web("#DC2626"));
+        deleteOption.setStyle("-fx-padding: 12 16; -fx-cursor: hand;");
+        deleteOption.setOnMouseEntered(e -> deleteOption.setStyle("-fx-padding: 12 16; -fx-background-color: #FEE2E2; -fx-cursor: hand;"));
+        deleteOption.setOnMouseExited(e -> deleteOption.setStyle("-fx-padding: 12 16; -fx-background-color: white; -fx-cursor: hand;"));
+        deleteOption.setOnMouseClicked(e -> showDeleteConfirmationModal());
+        
+        menuBox.getChildren().addAll(editOption, deleteOption);
+        
+        StackPane popup = new StackPane(menuBox);
+        popup.setPrefSize(160, 80);
+        popup.setStyle("-fx-background-color: transparent;");
+        
+        Stage menuStage = new Stage();
+        menuStage.initStyle(StageStyle.TRANSPARENT);
+        menuStage.setScene(new Scene(popup, 160, 80, Color.TRANSPARENT));
+        
+        // Posisikan menu di sebelah kanan icon
+        Window mainWindow = mainContainer.getScene().getWindow();
+        double iconX = iconView.localToScene(0, 0).getX() + mainWindow.getX();
+        double iconY = iconView.localToScene(0, 0).getY() + mainWindow.getY();
+        
+        menuStage.setX(iconX + iconView.getFitWidth() + 10); // Di sebelah kanan dengan jarak 10px
+        menuStage.setY(iconY);
+        
+        // Tutup menu jika klik di luar
+        popup.setOnMouseExited(e -> {
+            if (e.isStillSincePress()) return;
+            menuStage.close();
+        });
+        
+        menuStage.show();
+    }
+    
+    // ==========================================
+    // MODAL KONFIRMASI HAPUS JURNAL
+    // ==========================================
+    private void showDeleteConfirmationModal() {
+        Window mainWindow = titleLabel.getScene().getWindow();
+        
+        Stage modalStage = new Stage();
+        modalStage.initOwner(mainWindow);
+        modalStage.initModality(Modality.APPLICATION_MODAL);
+        modalStage.initStyle(StageStyle.UTILITY); // Ganti ke UTILITY untuk modal kecil
+        
+        // Dialog Content
+        VBox dialogBox = new VBox(15);
+        dialogBox.setStyle("-fx-background-color: white; -fx-background-radius: 15px; -fx-padding: 20;");
+        dialogBox.setAlignment(Pos.TOP_CENTER);
+        dialogBox.setPrefSize(320, 240); // Ukuran lebih kecil
+        
+        // Alert Icon di bagian atas tengah
+        try {
+            ImageView alertIcon = new ImageView(new Image("file:img/icons/alert.png"));
+            alertIcon.setFitWidth(40);
+            alertIcon.setFitHeight(40);
+            alertIcon.setPreserveRatio(true);
+            dialogBox.getChildren().add(alertIcon);
+        } catch (Exception e) {
+            // Fallback
+            Circle alertCircle = new Circle(20, Color.web("#F59E0B"));
+            Label exclamation = new Label("!");
+            exclamation.setTextFill(Color.WHITE);
+            exclamation.setFont(Font.font("Outfit", FontWeight.BOLD, 24));
+            StackPane alertPane = new StackPane(alertCircle, exclamation);
+            dialogBox.getChildren().add(alertPane);
+        }
+        
+        // Spacer kecil
+        Region spacer = new Region();
+        spacer.setPrefHeight(10);
+        dialogBox.getChildren().add(spacer);
+        
+        // Main Text
+        Label mainText = new Label("Apakah anda yakin untuk hapus jurnal ini?");
+        mainText.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
+        mainText.setTextFill(Color.web("#000000"));
+        mainText.setWrapText(true);
+        mainText.setTextAlignment(TextAlignment.CENTER);
+        dialogBox.getChildren().add(mainText);
+        
+        // Secondary Text
+        Label secondaryText = new Label("Aksi ini tidak dapat dipulihkan");
+        secondaryText.setFont(Font.font("Outfit", FontWeight.NORMAL, 12));
+        secondaryText.setTextFill(Color.web("#757575"));
+        secondaryText.setWrapText(true);
+        secondaryText.setTextAlignment(TextAlignment.CENTER);
+        dialogBox.getChildren().add(secondaryText);
+        
+        // Spacer
+        Region spacer2 = new Region();
+        spacer2.setPrefHeight(15);
+        dialogBox.getChildren().add(spacer2);
+        
+        // Button Container
+        HBox buttonBox = new HBox(12);
+        buttonBox.setAlignment(Pos.CENTER);
+        
+        Button backButton = new Button("Batalkan");
+        backButton.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 12));
+        backButton.setStyle("-fx-background-color: white; -fx-text-fill: #DC2626; -fx-border-color: #DC2626; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;");
+        backButton.setOnAction(e -> modalStage.close());
+        
+        Button deleteButton = new Button("Hapus");
+        deleteButton.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 12));
+        deleteButton.setStyle("-fx-background-color: #DC2626; -fx-text-fill: white; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;");
+        deleteButton.setOnAction(e -> {
+            if (onDeleteAction != null) {
+                modalStage.close();
+                onDeleteAction.run();
+            }
+        });
+        
+        buttonBox.getChildren().addAll(backButton, deleteButton);
+        dialogBox.getChildren().add(buttonBox);
+        
+        // Scene tanpa overlay
+        Scene scene = new Scene(dialogBox);
+        modalStage.setScene(scene);
+        modalStage.setResizable(false);
+        
+        // Posisikan di tengah window utama
+        modalStage.setX(mainWindow.getX() + (mainWindow.getWidth() - 320) / 2);
+        modalStage.setY(mainWindow.getY() + (mainWindow.getHeight() - 240) / 2);
+        
+        modalStage.show();
     }
 }

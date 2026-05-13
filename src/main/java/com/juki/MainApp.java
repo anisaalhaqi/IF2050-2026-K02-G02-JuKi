@@ -18,6 +18,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import java.util.function.Consumer;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -218,7 +226,38 @@ public class MainApp extends Application {
             return;
         }
         EntryDetailView detailView = new EntryDetailView();
-        root.setCenter(detailView.getView(entry, user.getFullName(), () -> showEntryList(root, user)));
+        
+        // onEditAction: buka form edit
+        Consumer<JournalEntry> onEditAction = (JournalEntry journalEntry) -> {
+            showEntryForm(root, user, journalEntry); // Pass journalEntry untuk edit mode
+        };
+        
+        // onDeleteAction: hapus entry dan kembali ke list
+        Runnable onDeleteAction = () -> {
+            entryController.deleteEntry(entryId);
+            showEntryList(root, user); // Kembali ke list setelah hapus
+        };
+        
+        root.setCenter(detailView.getView(entry, user.getFullName(), () -> showEntryList(root, user), onEditAction, onDeleteAction));
+    }
+
+    private void showEntryForm(BorderPane root, User user, JournalEntry entryToEdit) {
+        EntryFormView entryFormView;
+        if (entryToEdit != null) {
+            // Edit mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After save changes, kembali ke detail view dengan data terbaru
+                showEntryDetail(root, user, entryToEdit.getId());
+            }, entryToEdit);
+        } else {
+            // New entry mode
+            entryFormView = new EntryFormView(user, () -> {
+                // After post, kembali ke list
+                showEntryList(root, user);
+            });
+        }
+        
+        root.setCenter(entryFormView.getView().getCenter());
     }
 
     public static void main(String[] args) {

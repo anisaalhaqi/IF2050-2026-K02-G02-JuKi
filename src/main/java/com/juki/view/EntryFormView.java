@@ -36,10 +36,22 @@ public class EntryFormView {
     private List<String> selectedPhotoPaths = new ArrayList<>();
     private User user;
     private Runnable onPostSuccess;
+    private JournalEntry editingEntry;
+    private List<com.juki.model.Photo> editingPhotos = new ArrayList<>();
 
     public EntryFormView(User user, Runnable onPostSuccess) {
         this.user = user;
         this.onPostSuccess = onPostSuccess;
+        this.editingEntry = null;
+    }
+    
+    public EntryFormView(User user, Runnable onPostSuccess, JournalEntry entryToEdit) {
+        this.user = user;
+        this.onPostSuccess = onPostSuccess;
+        this.editingEntry = entryToEdit;
+        if (entryToEdit != null && entryToEdit.getPhotos() != null) {
+            this.editingPhotos = new ArrayList<>(entryToEdit.getPhotos());
+        }
     }
 
     public BorderPane getView() {
@@ -106,7 +118,7 @@ public class EntryFormView {
         Region spacerRow1 = new Region();
         HBox.setHgrow(spacerRow1, Priority.ALWAYS);
 
-        Button btnPost = new Button("Post");
+        Button btnPost = new Button(editingEntry != null ? "Save Changes" : "Post");
         btnPost.setStyle("-fx-background-color: #FFD54F; -fx-text-fill: black; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 8px 30px; -fx-cursor: hand;");
         btnPost.setOnAction(e -> handlePost());
 
@@ -234,7 +246,75 @@ public class EntryFormView {
 
         root.setCenter(scrollPane);
         
+        // Pre-fill data jika mode edit
+        if (editingEntry != null) {
+            preFillFormData();
+        }
+        
         return root;
+    }
+    
+    private void preFillFormData() {
+        if (editingEntry == null) return;
+        
+        titleField.setText(editingEntry.getTitle() != null ? editingEntry.getTitle() : "");
+        catCombo.setValue(editingEntry.getCategory() != null ? editingEntry.getCategory() : "Umum");
+        causeField.setText(editingEntry.getTrigger() != null ? editingEntry.getTrigger() : "");
+        writeArea.setText(editingEntry.getDescription() != null ? editingEntry.getDescription() : "");
+        
+        // Load existing photos
+        selectedPhotoPaths.clear();
+        selectedImagePane.getChildren().clear();
+        
+        if (editingPhotos != null && !editingPhotos.isEmpty()) {
+            for (com.juki.model.Photo photo : editingPhotos) {
+                if (photo != null && photo.getFilePath() != null) {
+                    selectedPhotoPaths.add(photo.getFilePath());
+                    displayPhotoWithDeleteButton(photo.getFilePath(), photo.getId());
+                }
+            }
+        }
+    }
+    
+    private void displayPhotoWithDeleteButton(String filePath, Integer photoId) {
+        File file = new File(filePath);
+        if (!file.exists()) return;
+        
+        try {
+            Image image = new Image(file.toURI().toString(), 120, 0, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(120);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            
+            // Delete Button (X)
+            Circle deleteBtn = new Circle(12);
+            deleteBtn.setFill(Color.web("#DC2626"));
+            Label deleteIcon = new Label("✕");
+            deleteIcon.setTextFill(Color.WHITE);
+            deleteIcon.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
+            
+            StackPane deleteButton = new StackPane(deleteBtn, deleteIcon);
+            deleteButton.setStyle("-fx-cursor: hand;");
+            deleteButton.setOnMouseClicked(e -> {
+                selectedPhotoPaths.remove(filePath);
+                editingPhotos.removeIf(p -> p.getId() != null && p.getId().equals(photoId));
+                selectedImagePane.getChildren().remove((StackPane) imageView.getParent());
+            });
+            
+            StackPane photoContainer = new StackPane(imageView);
+            photoContainer.setPrefSize(120, 120);
+            photoContainer.setStyle("-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);");
+            
+            // Position delete button at top-left
+            StackPane.setAlignment(deleteButton, Pos.TOP_LEFT);
+            StackPane.setMargin(deleteButton, new Insets(4, 0, 0, 4));
+            photoContainer.getChildren().add(deleteButton);
+            
+            selectedImagePane.getChildren().add(photoContainer);
+        } catch (Exception e) {
+            System.err.println("Error loading photo: " + e.getMessage());
+        }
     }
 
     // ==========================================
@@ -244,25 +324,47 @@ public class EntryFormView {
         System.out.println("Tombol Post ditekan! Menyimpan jurnal ke database...");
 
         EntryController controller = new EntryController();
-        JournalEntry entry = new JournalEntry();
+        JournalEntry entry;
         
-        entry.setTitle(titleField.getText());
-        entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
-        entry.setTrigger(causeField.getText());
-        entry.setDescription(writeArea.getText());
-        entry.setDate(LocalDate.now());
-        entry.setTime(LocalTime.now());
-        entry.setUserId(user.getId());
-
-        if (!selectedPhotoPaths.isEmpty()) {
-            List<com.juki.model.Photo> photos = new ArrayList<>();
+        if (editingEntry != null) {
+            // Mode Update
+            entry = editingEntry;
+            entry.setTitle(titleField.getText());
+            entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
+            entry.setTrigger(causeField.getText());
+            entry.setDescription(writeArea.getText());
+            
+            // Combine new photos with existing ones
+            List<com.juki.model.Photo> allPhotos = new ArrayList<>(editingPhotos);
             for (String path : selectedPhotoPaths) {
-                photos.add(new com.juki.model.Photo(null, path));
+                if (!editingPhotos.stream().anyMatch(p -> p.getFilePath().equals(path))) {
+                    allPhotos.add(new com.juki.model.Photo(null, path));
+                }
             }
-            entry.setPhotos(photos);
-        }
+            entry.setPhotos(allPhotos);
+            
+            controller.updateEntryWithPhotos(entry, allPhotos);
+        } else {
+            // Mode Create
+            entry = new JournalEntry();
+            entry.setTitle(titleField.getText());
+            entry.setCategory(catCombo.getValue() != null ? catCombo.getValue() : "Umum");
+            entry.setTrigger(causeField.getText());
+            entry.setDescription(writeArea.getText());
+            entry.setDate(LocalDate.now());
+            entry.setTime(LocalTime.now());
+            entry.setUserId(user.getId());
 
-        controller.saveJournal(entry); // Simpan ke database
+            if (!selectedPhotoPaths.isEmpty()) {
+                List<com.juki.model.Photo> photos = new ArrayList<>();
+                for (String path : selectedPhotoPaths) {
+                    photos.add(new com.juki.model.Photo(null, path));
+                }
+                entry.setPhotos(photos);
+            }
+
+            controller.saveJournal(entry);
+        }
 
         if (onPostSuccess != null) {
             onPostSuccess.run(); // Alihkan layar via callback
@@ -302,17 +404,51 @@ public class EntryFormView {
                 String absolutePath = targetPath.toString();
                 selectedPhotoPaths.add(absolutePath);
 
-                Image image = new Image(new File(absolutePath).toURI().toString(), 120, 0, true, true);
-                ImageView imageView = new ImageView(image);
-                imageView.setFitWidth(120);
-                imageView.setPreserveRatio(true);
-                imageView.setSmooth(true);
-                selectedImagePane.getChildren().add(imageView);
+                displayNewPhotoWithDeleteButton(absolutePath);
                 System.out.println("Gambar berhasil dipilih dan disalin: " + absolutePath);
             } catch (IOException e) {
                 System.err.println("Error copying image file: " + e.getMessage());
-                // Optionally show error to user
             }
+        }
+    }
+    
+    private void displayNewPhotoWithDeleteButton(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) return;
+        
+        try {
+            Image image = new Image(file.toURI().toString(), 120, 0, true, true);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(120);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            
+            // Delete Button (X)
+            Circle deleteBtn = new Circle(12);
+            deleteBtn.setFill(Color.web("#DC2626"));
+            Label deleteIcon = new Label("✕");
+            deleteIcon.setTextFill(Color.WHITE);
+            deleteIcon.setFont(Font.font("Outfit", FontWeight.BOLD, 14));
+            
+            StackPane deleteButton = new StackPane(deleteBtn, deleteIcon);
+            deleteButton.setStyle("-fx-cursor: hand;");
+            deleteButton.setOnMouseClicked(e -> {
+                selectedPhotoPaths.remove(filePath);
+                selectedImagePane.getChildren().remove((StackPane) imageView.getParent());
+            });
+            
+            StackPane photoContainer = new StackPane(imageView);
+            photoContainer.setPrefSize(120, 120);
+            photoContainer.setStyle("-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 4);");
+            
+            // Position delete button at top-left
+            StackPane.setAlignment(deleteButton, Pos.TOP_LEFT);
+            StackPane.setMargin(deleteButton, new Insets(4, 0, 0, 4));
+            photoContainer.getChildren().add(deleteButton);
+            
+            selectedImagePane.getChildren().add(photoContainer);
+        } catch (Exception e) {
+            System.err.println("Error displaying photo: " + e.getMessage());
         }
     }
 
