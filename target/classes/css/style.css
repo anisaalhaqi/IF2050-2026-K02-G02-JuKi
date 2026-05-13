@@ -11,6 +11,43 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
     -fx-padding: 20px;
 }
+.date-picker-popup .calendar-grid {
+    -fx-background-color: white;
+}
+
+.date-picker-popup .day-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #292929;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #FFF4B5;
+    -fx-background-radius: 50%;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: #FFE341;
+    -fx-background-radius: 50%;
+    -fx-text-fill: #292929;
+}
+.date-picker-popup .day-cell:selected {
+    -fx-background-color: #FFE341;
+    -fx-background-radius: 50%;
+    -fx-text-fill: #292929;
+    -fx-border-color: transparent;
+}
+
+.date-picker-popup .day-cell:focused {
+    -fx-background-color: #FFE341;
+    -fx-background-radius: 50%;
+    -fx-border-color: transparent;
+    -fx-text-fill: #292929;
+}
+
+.date-picker-popup .today {
+    -fx-border-color: #FFE341;
+    -fx-border-radius: 50%;
+}
 
 .calendar-grid {
     -fx-hgap: 5px;
@@ -38,8 +75,7 @@
 }
 
 .calendar-cell-today {
-    -fx-border-color: #A114AC;
-    -fx-border-radius: 50%;
+    -fx-border-color: transparent;
 }
 
 .calendar-header {
@@ -178,4 +214,10 @@
 
 .btn-delete-cancel:hover {
     -fx-background-color: #FEF2F2;
+}
+
+.date-picker,
+.date-picker-popup {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
