@@ -11,6 +11,8 @@ import com.juki.model.User;
 import com.juki.service.GoalService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.collections.FXCollections;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -177,18 +179,119 @@ public class DashboardView {
         dateFilter.getChildren().add(new Label("7 hari terakhir"));
         header.getChildren().addAll(title, spacer, dateFilter);
 
-        CategoryAxis xAxis = new CategoryAxis(); NumberAxis yAxis = new NumberAxis(0, 5, 1);
+        String[] dayShorts = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+        List<String> categoryOrder = new ArrayList<>();
+        
+        CategoryAxis xAxis = new CategoryAxis();
+        
+        // Mengunci Sumbu Y secara absolut (0 sampai 5.5 agar titik teratas tidak kepotong)
+        NumberAxis yAxis = new NumberAxis(0, 5.5, 1);
+        yAxis.setAutoRanging(false);
         yAxis.setTickLabelsVisible(false);
+        
         AreaChart<String, Number> chart = new AreaChart<>(xAxis, yAxis);
         chart.setPrefHeight(228); chart.setLegendVisible(false);
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        String[] dayShorts = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+        boolean hasMoodData = false;
+        
+        System.out.println("--- MEMUAT DATA GRAFIK MOOD ---");
+        // Loop untuk menarik data dinamis per hari dari database
         for (int i = 6; i >= 0; i--) {
-            series.getData().add(new XYChart.Data<>(dayShorts[LocalDate.now().minusDays(i).getDayOfWeek().getValue() % 7], 3));
+            LocalDate date = LocalDate.now().minusDays(i);
+            String dayLabel = dayShorts[date.getDayOfWeek().getValue() % 7];
+            categoryOrder.add(dayLabel);
+            
+            // Ambil mood untuk tanggal tersebut
+            DailyMood mood = moodController.getMoodByDate(currentUser.getId(), date);
+            
+            // Tentukan skor mood hanya jika ada data
+            if (mood != null) {
+                int moodScore = getMoodScore(mood.getMoodName());
+                hasMoodData = true;
+                XYChart.Data<String, Number> dataPoint = new XYChart.Data<>(dayLabel, moodScore);
+                dataPoint.setNode(createMoodDataNode(mood));
+                series.getData().add(dataPoint);
+                System.out.println("Tanggal: " + date + " | Mood: " + mood.getMoodName() + " | Skor: " + moodScore);
+            } else {
+                System.out.println("Tanggal: " + date + " | Mood: KOSONG");
+            }
         }
-        chart.getData().add(series);
-        container.getChildren().addAll(header, chart);
+        xAxis.setCategories(FXCollections.observableArrayList(categoryOrder));
+        System.out.println("-------------------------------");
+        
+        if (hasMoodData) {
+            chart.getData().add(series);
+        }
+        
+        Label noDataLabel = null;
+        if (!hasMoodData) {
+            noDataLabel = new Label("Belum ada data mood untuk 7 hari terakhir.");
+            noDataLabel.setTextFill(Color.web("#666666"));
+            noDataLabel.setFont(Font.font("Outfit", FontWeight.MEDIUM, 18));
+            noDataLabel.setAlignment(Pos.CENTER);
+        }
+        
+        container.getChildren().add(header);
+        container.getChildren().add(chart);
+        if (noDataLabel != null) {
+            VBox messageBox = new VBox(noDataLabel);
+            messageBox.setPrefHeight(40);
+            messageBox.setAlignment(Pos.CENTER);
+            container.getChildren().add(messageBox);
+        }
         return container;
+    }
+
+    // Method untuk menentukan tingkatan (skor) mood dari 1 (terendah) hingga 5 (paling happy)
+    private int getMoodScore(String moodName) {
+        if (moodName == null || moodName.trim().isEmpty()) return 3; // Default (Tengah)
+        
+        // Gunakan trim() untuk membuang spasi tak terlihat dari database
+        switch (moodName.trim().toLowerCase()) {
+            case "hurt":
+            case "angry":
+            case "stressed":
+                return 1; // Paling bawah (Sangat Negatif)
+                
+            case "guilty":
+            case "insecure":
+            case "tired":
+            case "sensitive":
+                return 2; // Bawah menengah (Negatif)
+                
+            case "bored":
+            case "confused":
+                return 3; // Tengah (Netral)
+                
+            case "excited":
+            case "hyperactive":
+                return 4; // Atas menengah (Positif)
+                
+            case "joyful":
+                return 5; // Paling Atas (Sangat Positif / Paling Happy)
+                
+            default:
+                // Jika nama mood tidak terdaftar di atas, kembalikan 3
+                return 3;
+        }
+    }
+
+    private Node createMoodDataNode(DailyMood mood) {
+        String moodName = mood.getMoodName();
+        if (moodName == null || moodName.trim().isEmpty()) {
+            moodName = "confused";
+        }
+        String iconFile = moodName.trim().toLowerCase() + ".png";
+        ImageView moodIcon = new ImageView();
+        try {
+            moodIcon.setImage(new Image("file:img/emotions/" + iconFile));
+            moodIcon.setFitWidth(28);
+            moodIcon.setPreserveRatio(true);
+            moodIcon.setSmooth(true);
+        } catch (Exception e) {
+            System.err.println("Tidak dapat memuat ikon mood: " + iconFile + " - " + e.getMessage());
+        }
+        return moodIcon;
     }
 
     private VBox createCalendarWidget() {
