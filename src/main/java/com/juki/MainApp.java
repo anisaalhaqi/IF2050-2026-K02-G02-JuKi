@@ -57,11 +57,13 @@ public class MainApp extends Application {
             showMainDashboard(primaryStage, user);
         });
 
-        Scene scene = new Scene(loginView.getView(), 1600, 900);
+        Scene scene = new Scene(loginView.getView(), 1280, 720);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
+        // primaryStage.setMaximized(true); // Disable temporarily for WSL stability
+        System.out.println("Mempersembahkan window...");
         primaryStage.show();
+        System.out.println("Window sudah ditampilkan!");
     }
 
     private void showMainDashboard(Stage primaryStage, User user) {
@@ -77,7 +79,7 @@ public class MainApp extends Application {
         // Logo Section: [Image]
         ImageView logo = new ImageView();
         try {
-            logo.setImage(new Image("file:img/dashboard/logo (3).png"));
+            logo.setImage(new Image("file:img/dashboard/logo%20(3).png"));
             logo.setFitHeight(50);
             logo.setPreserveRatio(true);
         } catch (Exception e) {

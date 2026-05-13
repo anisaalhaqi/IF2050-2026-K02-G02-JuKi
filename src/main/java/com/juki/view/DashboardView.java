@@ -59,42 +59,19 @@ public class DashboardView {
         // Row 1: Greeting
         HBox greetingBox = createGreeting(user);
         
-        // Col 1: Containers
+        // Row 2: Streak, Graph, Calendar, Mood Selector
         VBox col1 = new VBox(10); col1.setPrefWidth(689);
         VBox streakWidgetContainer = new VBox();
         VBox moodGraphWidgetContainer = new VBox();
         col1.getChildren().addAll(streakWidgetContainer, moodGraphWidgetContainer);
 
-        // Row 2 setup
         HBox row2 = new HBox(40); row2.setAlignment(Pos.BOTTOM_LEFT);
         row2.getChildren().addAll(col1, createCalendarWidget(), createMoodSelectorWidget());
 
-        // Row 3 setup
+        // Row 3: Journal History + Daily Targets
         HBox row3 = new HBox(64); row3.setAlignment(Pos.TOP_LEFT);
         VBox dailyTargetsContainer = new VBox();
         row3.getChildren().addAll(createJournalHistoryWidget(entries), dailyTargetsContainer);
-
-        // Column 1: Streak + Mood Graph
-        VBox col1 = new VBox(10);
-        col1.setPrefWidth(689);
-        col1.getChildren().addAll(createStreakWidget(entries), createMoodGraphWidget(entries));
-
-        // Column 2: Calendar
-        VBox col2 = createCalendarWidget();
-
-        // Column 3: Mood Selector
-        VBox col3 = createMoodSelectorWidget();
-
-        row2.getChildren().addAll(col1, col2, col3);
-
-        // Row 3: Journal History + Daily Targets
-        HBox row3 = new HBox(64);
-        row3.setAlignment(Pos.TOP_LEFT);
-
-        VBox journalHistory = createJournalHistoryWidget(entries);
-        VBox dailyTargets = createDailyTargetsWidget(todayGoals);
-
-        row3.getChildren().addAll(journalHistory, dailyTargets);
 
         content.getChildren().addAll(greetingBox, row2, row3);
 
@@ -137,7 +114,7 @@ public class DashboardView {
 
         VBox streakCount = new VBox(0); streakCount.setAlignment(Pos.CENTER);
         HBox streakIcon = new HBox(8); streakIcon.setAlignment(Pos.CENTER);
-        ImageView fireImage = new ImageView(new Image("file:img/beranda/streak_fire.png"));
+        ImageView fireImage = new ImageView(new Image("file:img/dashboard/streak_fire.png"));
         fireImage.setFitWidth(42.15); fireImage.setPreserveRatio(true);
         Label dayLabel = new Label(String.valueOf(goalService.getStreak()));
         dayLabel.setFont(Font.font("Outfit", FontWeight.MEDIUM, 50));
@@ -513,3 +490,68 @@ public class DashboardView {
         card.getChildren().addAll(header, body);
         return card;
     }
+
+    private VBox createDailyTargetsWidget() {
+        return createDailyTargetsWidget(goalService.getGoalsForDate(LocalDate.now()));
+    }
+
+    private VBox createDailyTargetsWidget(List<SelfCareGoal> goals) {
+        VBox container = new VBox(16);
+        container.setPrefSize(500, 302);
+        container.setPadding(new Insets(28));
+        container.setStyle("-fx-background-color: white; -fx-border-color: #D6D6D6; -fx-border-radius: 20px; -fx-background-radius: 20px;");
+
+        HBox header = new HBox(16);
+        header.setAlignment(Pos.CENTER_LEFT);
+        Circle iconPlaceholder = new Circle(35, Color.web("#D9D9D9"));
+        VBox titleArea = new VBox(4);
+        Label title = new Label("Target Hari Ini");
+        title.setFont(Font.font("Outfit", FontWeight.MEDIUM, 30));
+        title.setTextFill(Color.web("#292929"));
+        Label subtitle = new Label("Peluk dirimu dengan kegiatan ini!");
+        subtitle.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
+        subtitle.setTextFill(Color.web("#434343"));
+        titleArea.getChildren().addAll(title, subtitle);
+        header.getChildren().addAll(iconPlaceholder, titleArea);
+
+        VBox list = new VBox(8);
+        if (goals.isEmpty()) {
+            list.getChildren().add(new Label("Belum ada target hari ini."));
+        } else {
+            for (SelfCareGoal goal : goals) {
+                list.getChildren().add(createTargetItem(goal.getTitle(), goal.isCompleted()));
+            }
+        }
+
+        container.getChildren().addAll(header, list);
+        return container;
+    }
+
+    private HBox createTargetItem(String text, boolean completed) {
+        HBox item = new HBox();
+        item.setPrefHeight(40);
+        item.setAlignment(Pos.CENTER_LEFT);
+        Label label = new Label(text);
+        label.setFont(Font.font("Outfit", FontWeight.LIGHT, 20));
+        label.setTextFill(Color.BLACK);
+        if (completed) {
+            label.setStyle("-fx-text-decoration: line-through;");
+        }
+        
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        ImageView statusImg = new ImageView();
+        if (completed) {
+            statusImg.setImage(new Image("file:img/selfcare/status_done.png"));
+        } else {
+            statusImg.setImage(new Image("file:img/selfcare/status_undone.png"));
+        }
+        statusImg.setFitWidth(35);
+        statusImg.setFitHeight(35);
+        statusImg.setPreserveRatio(true);
+        
+        item.getChildren().addAll(label, spacer, statusImg);
+        return item;
+    }
+}

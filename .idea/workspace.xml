@@ -4,21 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="803880f6-47bd-4e53-a2d9-db44cc33ad22" name="Changes" comment="" />
+    <list default="true" id="803880f6-47bd-4e53-a2d9-db44cc33ad22" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/juki.db" beforeDir="false" afterPath="$PROJECT_DIR$/data/juki.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/view/DashboardView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/view/DashboardView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/db/DatabaseHelper.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/db/DatabaseHelper.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/DashboardView.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/DashboardView.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/RegistrationFormView.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/RegistrationFormView.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Merge.Settings">
-    <option name="BRANCH" value="origin/feat/detil-jurnal" />
+    <option name="BRANCH" value="origin/feat/fix-kalender" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="3Depdaw0RSoVvFvflg9jK8TNX7f" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -32,6 +46,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "develop",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "to.speed.mode.migration.done": "true"
