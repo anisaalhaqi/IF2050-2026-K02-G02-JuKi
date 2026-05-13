@@ -78,7 +78,7 @@ public class CalendarView {
         HBox streakValueBox = new HBox(8); streakValueBox.setAlignment(Pos.CENTER);
         Label streakNum = new Label(); streakNum.textProperty().bind(goalService.streakProperty().asString());
         streakNum.setFont(Font.font("Outfit", FontWeight.MEDIUM, 50));
-        ImageView fireImage = new ImageView(new Image("file:img/beranda/streak_fire.png"));
+        ImageView fireImage = new ImageView(new Image("file:img/dashboard/streak_fire.png"));
         fireImage.setFitWidth(42); fireImage.setPreserveRatio(true);
         streakValueBox.getChildren().addAll(streakNum, fireImage);
         streakBox.getChildren().addAll(streakValueBox, new Label("day streak"));

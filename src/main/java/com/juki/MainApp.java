@@ -57,17 +57,14 @@ public class MainApp extends Application {
             showMainDashboard(primaryStage, user);
         });
 
-        Scene scene = new Scene(loginView.getView(), 1280, 720);
+        Scene scene = new Scene(loginView.getView(), 1600, 900);
         primaryStage.setTitle("JuKi - Login");
         primaryStage.setScene(scene);
-        // primaryStage.setMaximized(true); // Disable temporarily for WSL stability
-        System.out.println("Mempersembahkan window...");
+        primaryStage.setResizable(true);
         primaryStage.show();
-        System.out.println("Window sudah ditampilkan!");
     }
 
     private void showMainDashboard(Stage primaryStage, User user) {
-        com.juki.service.GoalService.getInstance().setCurrentUser(user);
         BorderPane root = new BorderPane();
         SearchController searchController = new SearchController();
 
@@ -79,7 +76,7 @@ public class MainApp extends Application {
         // Logo Section: [Image]
         ImageView logo = new ImageView();
         try {
-            logo.setImage(new Image("file:img/dashboard/logo%20(3).png"));
+            logo.setImage(new Image("file:img/dashboard/logo (3).png"));
             logo.setFitHeight(50);
             logo.setPreserveRatio(true);
         } catch (Exception e) {
@@ -103,7 +100,10 @@ public class MainApp extends Application {
                 return;
             }
             List<JournalEntry> results = searchController.searchEntries(new com.juki.model.SearchFilter(null, keyword, null), user.getId());
-            EntryListView searchResultView = new EntryListView(user, results, id -> showEntryDetail(root, user, id));
+            
+            EntryListView searchResultView = new EntryListView(user, id -> showEntryDetail(root, user, id));
+            searchResultView.displayEntryList(results);
+            
             root.setCenter(searchResultView.getView());
         };
 
@@ -277,6 +277,7 @@ public class MainApp extends Application {
         primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 

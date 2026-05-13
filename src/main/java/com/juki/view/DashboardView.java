@@ -100,9 +100,17 @@ public class DashboardView {
         HBox greetingBox = new HBox(5); greetingBox.setAlignment(Pos.CENTER_LEFT);
         Label greetingText = new Label("Halo, " + user.getFullName() + "!  Gimana perasaanmu hari ini? ");
         greetingText.setTextFill(Color.web("#74400F")); greetingText.setFont(Font.font("Outfit", FontWeight.MEDIUM, 50));
-        Label emojiLabel = new Label("\uD83E\uDD14");
-        emojiLabel.setStyle("-fx-font-size: 50px; -fx-font-family: 'Segoe UI Emoji', sans-serif;");
-        greetingBox.getChildren().addAll(greetingText, emojiLabel);
+        
+        ImageView emojiImage = new ImageView();
+        try {
+            emojiImage.setImage(new Image("file:img/emojis/thinking-face.png"));
+            emojiImage.setFitHeight(50);
+            emojiImage.setPreserveRatio(true);
+        } catch (Exception e) {
+            System.err.println("Could not load thinking face emoji: " + e.getMessage());
+        }
+        
+        greetingBox.getChildren().addAll(greetingText, emojiImage);
         return greetingBox;
     }
 

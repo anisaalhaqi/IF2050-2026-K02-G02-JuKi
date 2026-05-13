@@ -8,12 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -37,35 +32,47 @@ public class EntryListView {
     private Consumer<Integer> onEntrySelected;
 
     public EntryListView(User user) {
-        this(user, null, null);
+        this(user, id -> System.out.println("Membuka detail jurnal dengan ID: " + id));
     }
 
     public EntryListView(User user, Consumer<Integer> onEntrySelected) {
-        this(user, null, onEntrySelected);
-    }
-
-    public EntryListView(User user, List<JournalEntry> entriesToDisplay) {
-        this(user, entriesToDisplay, null);
-    }
-
-    public EntryListView(User user, List<JournalEntry> entriesToDisplay, Consumer<Integer> onEntrySelected) {
-        this.onEntrySelected = onEntrySelected;
         controller = new EntryController();
         this.user = user;
+        this.onEntrySelected = onEntrySelected;
+        
         view = new VBox(30);
         view.setPadding(new Insets(50, 100, 50, 100));
         
-        Label title = new Label("Riwayat Jurnal Kamu \uD83D\uDCD6");
+        Label title = new Label("Riwayat Jurnal Kamu ");
         title.setFont(Font.font("Outfit", FontWeight.BOLD, 40));
         title.setTextFill(Color.web("#8D1395"));
+        
+        ImageView notesIcon = new ImageView();
+        try {
+            notesIcon.setImage(new Image("file:img/icons/notes.png"));
+            notesIcon.setFitHeight(40);
+            notesIcon.setPreserveRatio(true);
+        } catch (Exception e) {
+            System.err.println("Could not load notes icon: " + e.getMessage());
+        }
+        
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        titleBox.getChildren().addAll(title, notesIcon);
 
+        // Fitur Filter Tanggal dari HEAD
         Button dateFilterButton = new Button("Cari Berdasarkan Tanggal");
-        ImageView calendarIcon = new ImageView(new Image("file:img/icons/calendar.png"));
-        calendarIcon.setFitWidth(20);
-        calendarIcon.setFitHeight(20);
-        dateFilterButton.setGraphic(calendarIcon);
+        try {
+            ImageView calendarIcon = new ImageView(new Image("file:img/icons/calendar.png"));
+            calendarIcon.setFitWidth(20);
+            calendarIcon.setFitHeight(20);
+            dateFilterButton.setGraphic(calendarIcon);
+        } catch (Exception e) {
+            System.out.println("Icon tidak ditemukan, menggunakan teks saja.");
+        }
+        
         dateFilterButton.setContentDisplay(ContentDisplay.LEFT);
-        dateFilterButton.setStyle("-fx-background-color: #FFFAC1; -fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 18.75px; -fx-font-weight: 300; -fx-background-radius: 12.5px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-border-color: #A66502; -fx-border-width: 1.25px; -fx-border-radius: 12.5px; -fx-text-alignment: center;");
+        dateFilterButton.setStyle("-fx-background-color: #FFFAC1; -fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 18.75px; -fx-font-weight: 300; -fx-background-radius: 12.5px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-border-color: #A66502; -fx-border-width: 1.25px; -fx-border-radius: 12.5px;");
         dateFilterButton.setOnAction(e -> showDatePickerModal());
 
         HBox filterBar = new HBox();
@@ -75,17 +82,9 @@ public class EntryListView {
         filterBar.getChildren().addAll(spacer, dateFilterButton);
 
         listContainer = new VBox(20);
+        view.getChildren().addAll(titleBox, filterBar, listContainer);
         
-        view.getChildren().addAll(title, filterBar, listContainer);
-        
-        if (entriesToDisplay == null) {
-            loadEntries();
-        } else if (entriesToDisplay.isEmpty()) {
-            displayEmptyMessage();
-        } else {
-            currentEntries = entriesToDisplay;
-            displayEntryList(entriesToDisplay);
-        }
+        loadEntries();
     }
 
     private void showDatePickerModal() {
@@ -105,6 +104,7 @@ public class EntryListView {
         monthLabel.setTextFill(Color.web("#292929"));
         monthLabel.setFont(Font.font("Outfit", FontWeight.NORMAL, 35));
 
+        // Navigation Arrows
         ImageView prevArrow = new ImageView(new Image("file:img/icons/arrow-left.png"));
         prevArrow.setFitWidth(44.8);
         prevArrow.setFitHeight(44.8);
@@ -118,8 +118,8 @@ public class EntryListView {
 
         HBox monthHeader = new HBox(20, prevArrow, monthLabel, nextArrow);
         monthHeader.setAlignment(Pos.CENTER);
-        monthHeader.setPrefWidth(620.2);
 
+        // Weekdays Header
         String[] dayNames = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
         HBox weekdayRow = new HBox(44.8);
         weekdayRow.setAlignment(Pos.CENTER_LEFT);
@@ -129,13 +129,10 @@ public class EntryListView {
             dayLabel.setFont(Font.font("Montserrat", FontWeight.MEDIUM, 22.4));
             dayLabel.setPrefWidth(44.8);
             dayLabel.setAlignment(Pos.CENTER);
-            dayLabel.setStyle("-fx-cursor: hand;");
             weekdayRow.getChildren().add(dayLabel);
         }
 
         VBox dateGrid = new VBox(56);
-        dateGrid.setAlignment(Pos.TOP_LEFT);
-
         Runnable[] rebuildCalendar = new Runnable[1];
         rebuildCalendar[0] = () -> {
             monthLabel.setText(monthShown[0].format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH)));
@@ -156,29 +153,24 @@ public class EntryListView {
                     Label dayCell = new Label();
                     dayCell.setTextFill(Color.web("#434343"));
                     dayCell.setFont(Font.font("Montserrat", FontWeight.NORMAL, 28));
-                    dayCell.setAlignment(Pos.CENTER);
                     dayCell.setStyle("-fx-cursor: hand;");
 
-                    if (week == 0 && weekday < startOffset || day > daysInMonth) {
-                        dayCell.setText(" ");
-                        dateCellPane.setOpacity(0);
-                    } else {
+                    if (!(week == 0 && weekday < startOffset || day > daysInMonth)) {
                         dayCell.setText(String.valueOf(day));
                         LocalDate current = monthShown[0].atDay(day);
+                        
                         if (activeDate[0] != null && current.equals(activeDate[0])) {
                             Circle yellowBg = new Circle(20, Color.web("#FFE341"));
                             dateCellPane.getChildren().addAll(yellowBg, dayCell);
                         } else {
                             dateCellPane.getChildren().add(dayCell);
                         }
+                        
                         dateCellPane.setOnMouseClicked(e -> {
                             activeDate[0] = current;
                             rebuildCalendar[0].run();
                         });
                         day++;
-                    }
-                    if (dateCellPane.getChildren().isEmpty()) {
-                        dateCellPane.getChildren().add(dayCell);
                     }
                     weekRow.getChildren().add(dateCellPane);
                 }
@@ -186,29 +178,22 @@ public class EntryListView {
             }
         };
 
-        prevArrow.setOnMouseClicked(e -> {
-            monthShown[0] = monthShown[0].minusMonths(1);
-            rebuildCalendar[0].run();
-        });
-        nextArrow.setOnMouseClicked(e -> {
-            monthShown[0] = monthShown[0].plusMonths(1);
-            rebuildCalendar[0].run();
-        });
+        prevArrow.setOnMouseClicked(e -> { monthShown[0] = monthShown[0].minusMonths(1); rebuildCalendar[0].run(); });
+        nextArrow.setOnMouseClicked(e -> { monthShown[0] = monthShown[0].plusMonths(1); rebuildCalendar[0].run(); });
 
         Button applyButton = new Button("Terapkan");
-        applyButton.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 31.25px; -fx-font-weight: 400; -fx-background-radius: 12.5px; -fx-padding: 20px 40px; -fx-cursor: hand;");
+        applyButton.setStyle("-fx-background-color: #FFE341; -fx-text-fill: #74400F; -fx-font-family: 'Outfit'; -fx-font-size: 31.25px; -fx-background-radius: 12.5px; -fx-padding: 10px 40px; -fx-cursor: hand;");
         applyButton.setOnAction(e -> {
             selectedDateFilter = activeDate[0];
             if (selectedDateFilter != null) {
-                List<JournalEntry> filteredEntries = controller.getEntriesByDate(user.getId(), selectedDateFilter);
-                currentEntries = filteredEntries;
-                displayEntryList(filteredEntries);
+                currentEntries = controller.getEntriesByDate(user.getId(), selectedDateFilter);
+                displayEntryList(currentEntries);
             }
             modal.close();
         });
 
         Button clearButton = new Button("Hapus Filter");
-        clearButton.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 31.25px; -fx-font-weight: 400; -fx-background-radius: 12.5px; -fx-padding: 20px 40px; -fx-cursor: hand; -fx-border-color: #D6D6D6; -fx-border-width: 1px; -fx-border-radius: 12.5px;");
+        clearButton.setStyle("-fx-background-color: #F5F5F5; -fx-text-fill: #292929; -fx-font-family: 'Outfit'; -fx-font-size: 31.25px; -fx-background-radius: 12.5px; -fx-padding: 10px 40px; -fx-cursor: hand; -fx-border-color: #D6D6D6;");
         clearButton.setOnAction(e -> {
             selectedDateFilter = null;
             loadEntries();
@@ -224,8 +209,6 @@ public class EntryListView {
         modal.setScene(new javafx.scene.Scene(modalRoot));
         modal.show();
     }
-
-
 
     public ScrollPane getView() {
         ScrollPane scrollPane = new ScrollPane(view);
@@ -249,7 +232,10 @@ public class EntryListView {
             VBox card = new VBox(10);
             card.setStyle("-fx-background-color: white; -fx-background-radius: 15px; -fx-padding: 25px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-cursor: hand;");
             
-            String dateStr = entry.getDate() != null ? entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
+            // Format tanggal lokal Indonesia
+            String dateStr = entry.getDate() != null ? 
+                entry.getDate().format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id"))) : "Tanpa Tanggal";
+            
             Label dateLbl = new Label(dateStr + " • " + (entry.getCategory() != null ? entry.getCategory() : "Umum"));
             dateLbl.setFont(Font.font("Outfit", FontWeight.SEMI_BOLD, 14));
             dateLbl.setTextFill(Color.GRAY);
@@ -258,7 +244,6 @@ public class EntryListView {
             titleLbl.setFont(Font.font("Outfit", FontWeight.BOLD, 22));
             titleLbl.setTextFill(Color.web("#74400F"));
             titleLbl.setWrapText(true);
-            titleLbl.setMaxWidth(480);
 
             Label descLbl = new Label(entry.getDescription() != null ? entry.getDescription() : "");
             descLbl.setFont(Font.font("Outfit", FontWeight.NORMAL, 20));
@@ -267,7 +252,6 @@ public class EntryListView {
             descLbl.setMaxWidth(480);
 
             card.getChildren().addAll(dateLbl, titleLbl, descLbl);
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 15px; -fx-padding: 25px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-cursor: hand;");
             card.setOnMouseClicked(e -> selectEntry(entry.getId()));
 
             listContainer.getChildren().add(card);
@@ -275,6 +259,7 @@ public class EntryListView {
     }
 
     public void displayEmptyMessage() {
+        listContainer.getChildren().clear();
         Label emptyLbl = new Label("Belum ada jurnal yang ditulis. Yuk, tulis jurnal pertamamu hari ini!");
         emptyLbl.setFont(Font.font("Outfit", 18));
         emptyLbl.setTextFill(Color.GRAY);
