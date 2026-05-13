@@ -200,7 +200,6 @@ public class MainApp extends Application {
         scene.getStylesheets().add("data:text/css,.chart-series-area-fill { -fx-fill: rgba(255, 105, 180, 0.4); } .chart-series-area-line { -fx-stroke: #FF69B4; -fx-stroke-width: 3px; }");
         primaryStage.setTitle("JuKi - App");
         primaryStage.setScene(scene);
-        primaryStage.setFullScreen(true);
         primaryStage.centerOnScreen();
         primaryStage.setResizable(false);
         primaryStage.show();

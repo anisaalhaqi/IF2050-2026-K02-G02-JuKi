@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.List;
 
 public class EntryController {
 
@@ -124,6 +125,7 @@ public class EntryController {
 
     public void deleteEntry(int id) {
         String selectPhotoIdsSql = "SELECT photo_id FROM JournalEntry WHERE id = ?";
+        String selectPhotoPathsSql = "SELECT filePath FROM Photo WHERE id IN (%s)";
         String deletePhotosSql = "DELETE FROM Photo WHERE id IN (%s)";
         String deleteJournalSql = "DELETE FROM JournalEntry WHERE id = ?";
         try (Connection conn = DatabaseHelper.getConnection()) {
@@ -140,6 +142,30 @@ public class EntryController {
             if (photoIdsStr != null && !photoIdsStr.trim().isEmpty()) {
                 String[] ids = photoIdsStr.split(",");
                 String placeholders = String.join(",", java.util.Collections.nCopies(ids.length, "?"));
+                
+                // First, get file paths to delete files
+                List<String> filePaths = new ArrayList<>();
+                try (PreparedStatement pstmtPaths = conn.prepareStatement(String.format(selectPhotoPathsSql, placeholders))) {
+                    for (int i = 0; i < ids.length; i++) {
+                        pstmtPaths.setInt(i + 1, Integer.parseInt(ids[i].trim()));
+                    }
+                    try (ResultSet rs = pstmtPaths.executeQuery()) {
+                        while (rs.next()) {
+                            filePaths.add(rs.getString("filePath"));
+                        }
+                    }
+                }
+                
+                // Delete files
+                for (String path : filePaths) {
+                    try {
+                        java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(path));
+                    } catch (java.io.IOException e) {
+                        System.err.println("Error deleting file: " + path + " - " + e.getMessage());
+                    }
+                }
+                
+                // Delete from database
                 try (PreparedStatement pstmtPhotos = conn.prepareStatement(String.format(deletePhotosSql, placeholders))) {
                     for (int i = 0; i < ids.length; i++) {
                         pstmtPhotos.setInt(i + 1, Integer.parseInt(ids[i].trim()));

@@ -20,6 +20,12 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 public class EntryFormView {
     private TextField titleField;
@@ -275,16 +281,38 @@ public class EntryFormView {
             return;
         }
 
+        String photosDir = System.getProperty("user.dir") + "/data/img/photos/";
+
         for (File selectedFile : selectedFiles) {
-            String absolutePath = selectedFile.getAbsolutePath();
-            selectedPhotoPaths.add(absolutePath);
-            Image image = new Image(new File(absolutePath).toURI().toString(), 120, 0, true, true);
-            ImageView imageView = new ImageView(image);
-            imageView.setFitWidth(120);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-            selectedImagePane.getChildren().add(imageView);
-            System.out.println("Gambar berhasil dipilih: " + absolutePath);
+            try {
+                // Generate unique filename
+                String originalName = selectedFile.getName();
+                String extension = "";
+                int dotIndex = originalName.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    extension = originalName.substring(dotIndex);
+                }
+                String uniqueName = UUID.randomUUID().toString() + extension;
+                Path targetPath = Paths.get(photosDir, uniqueName);
+
+                // Copy file to photos directory
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Store the absolute path to the copied file
+                String absolutePath = targetPath.toString();
+                selectedPhotoPaths.add(absolutePath);
+
+                Image image = new Image(new File(absolutePath).toURI().toString(), 120, 0, true, true);
+                ImageView imageView = new ImageView(image);
+                imageView.setFitWidth(120);
+                imageView.setPreserveRatio(true);
+                imageView.setSmooth(true);
+                selectedImagePane.getChildren().add(imageView);
+                System.out.println("Gambar berhasil dipilih dan disalin: " + absolutePath);
+            } catch (IOException e) {
+                System.err.println("Error copying image file: " + e.getMessage());
+                // Optionally show error to user
+            }
         }
     }
 
