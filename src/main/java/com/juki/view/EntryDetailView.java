@@ -228,11 +228,9 @@ public class EntryDetailView {
         String category = entry.getCategory() != null && !entry.getCategory().isBlank() ? entry.getCategory() : "Umum";
         categoryLabel.setText(category);
 
-        String triggerValue = "Banyak tubes deadline mepet";
-        try {
-             // Jika kamu punya getTrigger() di JournalEntry:
-             // triggerValue = entry.getTrigger() != null ? entry.getTrigger() : "-";
-        } catch (Exception e) {}
+        String triggerValue = entry.getTrigger() != null && !entry.getTrigger().isBlank()
+            ? entry.getTrigger()
+            : "-";
         triggerValueLabel.setText(triggerValue);
 
         String description = entry.getDescription() != null && !entry.getDescription().isBlank() ? entry.getDescription() : "Tidak ada deskripsi jurnal.";
