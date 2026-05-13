@@ -146,16 +146,31 @@ public class CalendarView {
             targetBox.getChildren().add(n); 
         } else {
             for (SelfCareGoal g : goals) {
-                HBox i = new HBox(16); i.setAlignment(Pos.CENTER_LEFT);
-                Circle d = new Circle(10, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); d.setStroke(Color.web("#82DD55"));
+                HBox i = new HBox(16); 
+                i.setAlignment(Pos.CENTER_LEFT);
+                i.setStyle("-fx-cursor: hand; -fx-padding: 5;");
+                
+                Circle d = new Circle(10, g.isCompleted() ? Color.web("#82DD55") : Color.TRANSPARENT); 
+                d.setStroke(Color.web("#82DD55"));
+                d.setStrokeWidth(1.5);
+                
                 Label l = new Label(g.getTitle()); 
                 l.setFont(Font.font("Outfit", 18));
                 l.setTextFill(Color.web("#292929"));
+                
                 if (g.isCompleted()) {
                     l.setStyle("-fx-text-decoration: line-through;");
                     l.setTextFill(Color.web("#767676"));
                 }
-                i.getChildren().addAll(d, l); targetBox.getChildren().add(i);
+                
+                i.getChildren().addAll(d, l);
+                
+                // Add event listener to toggle status
+                i.setOnMouseClicked(e -> {
+                    goalService.toggleGoalStatus(g);
+                });
+                
+                targetBox.getChildren().add(i);
             }
         }
     }
