@@ -400,8 +400,8 @@ public class CalendarView {
         ImageView warningIcon = new ImageView(new Image("file:img/icons/alert.png"));
         warningIcon.setFitWidth(64); warningIcon.setPreserveRatio(true);
         
-        Label title = new Label("Apakah anda yakin mengahapus target ini hari ini?\n");
-        title.setFont(Font.font("Outfit", FontWeight.BOLD, 20)); title.setTextFill(Color.web("#292929"));
+        Label title = new Label("Apakah yakin mengahapus target hari ini?");
+        title.setFont(Font.font("Outfit", FontWeight.BOLD, 18)); title.setTextFill(Color.web("#292929"));
 
         Label msg = new Label("Aksi ini tidak dapat dipulihkan.");
         msg.setFont(Font.font("Outfit", 16)); msg.setTextFill(Color.web("#767676"));
