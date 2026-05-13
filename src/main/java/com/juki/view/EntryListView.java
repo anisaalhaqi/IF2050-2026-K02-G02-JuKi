@@ -109,7 +109,7 @@ public class EntryListView {
 
         // HEADER: title + X button
         HBox modalHeader = new HBox();
-        modalHeader.setAlignment(Pos.CENTER_LEFT);
+        modalHeader.setAlignment(Pos.CENTER);
         Label modalTitle = new Label("Pilih Tanggal");
         modalTitle.setFont(Font.font("Outfit", FontWeight.NORMAL, 29.57));
         modalTitle.setTextFill(Color.web("#292929"));
@@ -143,13 +143,16 @@ public class EntryListView {
         // Weekdays Header
         String[] dayNames = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
         HBox weekdayRow = new HBox(44.8);
-        weekdayRow.setAlignment(Pos.CENTER_LEFT);
+        weekdayRow.setAlignment(Pos.CENTER);
         for (String dayName : dayNames) {
             Label dayLabel = new Label(dayName);
+            dayLabel.setPrefWidth(65);
+            dayLabel.setMinWidth(Region.USE_PREF_SIZE);
             dayLabel.setTextFill(Color.web("#767676"));
-            dayLabel.setFont(Font.font("Montserrat", FontWeight.MEDIUM, 22.4));
+            dayLabel.setFont(Font.font("Montserrat", FontWeight.MEDIUM, 19));
             dayLabel.setPrefWidth(44.8);
             dayLabel.setAlignment(Pos.CENTER);
+            dayLabel.setWrapText(false);
             weekdayRow.getChildren().add(dayLabel);
         }
 
@@ -166,7 +169,7 @@ public class EntryListView {
 
             for (int week = 0; week < 6; week++) {
                 HBox weekRow = new HBox(44.8);
-                weekRow.setAlignment(Pos.CENTER_LEFT);
+                weekRow.setAlignment(Pos.CENTER);
                 for (int weekday = 0; weekday < 7; weekday++) {
                     StackPane dateCellPane = new StackPane();
                     dateCellPane.setPrefSize(44.8, 33.6);
