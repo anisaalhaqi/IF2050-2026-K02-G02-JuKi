@@ -2,12 +2,10 @@
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/AnalyticsController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/EntryController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/GoalController.java
-/mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/MoodController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/ProfileManager.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/RegistrationFormController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/controller/SearchController.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/db/DatabaseHelper.java
-/mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/model/DailyMood.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/model/JournalEntry.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/model/Photo.java
 /mnt/c/Users/ThinkPad/IF2050-2026-K02-G02-JuKi/src/main/java/com/juki/model/SearchFilter.java
