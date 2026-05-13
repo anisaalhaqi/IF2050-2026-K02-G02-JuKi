@@ -6,16 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="803880f6-47bd-4e53-a2d9-db44cc33ad22" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryFormView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryFormView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/MainApp.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/controller/EntryController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/controller/EntryController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/juki/view/CalendarView.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryDetailView.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryFormView.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/EntryListView.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/GoalModal.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/ProfileView.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/juki/view/RegistrationFormView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/juki.db" beforeDir="false" afterPath="$PROJECT_DIR$/data/juki.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryListView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/juki/view/EntryListView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +18,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Merge.Settings">
-    <option name="BRANCH" value="origin/feat/fix-kalender" />
+    <option name="BRANCH" value="fix/journal-entry" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />

@@ -168,27 +168,7 @@ public class MainApp extends Application {
 
                     textContent.getChildren().addAll(titleLbl, descLbl, metaRow);
 
-                    // Thumbnail if photo exists
-                    if (entry.getPhotos() != null && !entry.getPhotos().isEmpty()) {
-                        String photoPath = entry.getPhotos().get(0).getFilePath();
-                        if (photoPath != null && !photoPath.isEmpty()) {
-                            try {
-                                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
-                                    new javafx.scene.image.Image("file:" + photoPath));
-                                iv.setFitWidth(220); iv.setFitHeight(160); iv.setPreserveRatio(false);
-                                VBox thumb = new VBox(iv);
-                                thumb.setPrefSize(220, 160); thumb.setMinSize(220, 160); thumb.setMaxSize(220, 160);
-                                thumb.setStyle("-fx-background-radius: 16px; -fx-padding: 0 0 0 32px;");
-                                card.getChildren().addAll(textContent, thumb);
-                            } catch (Exception ex) {
-                                card.getChildren().add(textContent);
-                            }
-                        } else {
-                            card.getChildren().add(textContent);
-                        }
-                    } else {
-                        card.getChildren().add(textContent);
-                    }
+                    card.getChildren().add(textContent);
 
                     card.setOnMouseClicked(e -> showEntryDetail(root, user, entry.getId()));
                     cardList.getChildren().add(card);
